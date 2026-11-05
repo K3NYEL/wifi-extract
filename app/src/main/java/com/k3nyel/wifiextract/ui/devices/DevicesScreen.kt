@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -99,6 +101,9 @@ fun DevicesScreen(
             state.message?.let { message -> item { MnaCard { Note(message) } } }
             item {
                 Note("Por restricciones de Android 10+, la dirección MAC y el fabricante pueden no estar disponibles. Un dispositivo que no responde no implica que no exista. Usa el escaneo solo en redes propias o con permiso.")
+            }
+            item {
+                Spacer(Modifier.height(28.dp))
             }
         }
     }
