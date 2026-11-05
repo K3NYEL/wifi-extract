@@ -1,34 +1,65 @@
 # Mobile Network Analyzer
 
-Native Android network diagnostics app built with Kotlin and Jetpack Compose.
+Native Android network information and diagnostics application built with Kotlin and Jetpack Compose.
 
-> Foundation stage: this repository establishes the Android app, visual system, and read-only network overview. Discovery and authorized diagnostics will be added in isolated feature branches.
+The six-screen HTML mockup supplied for this project is the product's visual and information-architecture reference. The Android implementation uses five persistent bottom-navigation destinations; **Scope and limits** is presented inside Settings.
 
-## Stack
-- Kotlin
-- Android Gradle Plugin
-- Jetpack Compose + Material 3
+## Product structure
+
+| Destination | Purpose | Current status |
+|---|---|---|
+| Overview | Connection state, transport, IPv4, gateway, DNS and interface | Implemented as read-only overview |
+| Devices | Discover devices visible on the connected local network | Coming soon |
+| Diagnostics | Bounded, cancellable connectivity checks | Coming soon |
+| Updates | Official GitHub Releases, APK signature and SHA-256 verification | UI marked coming soon; updater not implemented |
+| Settings | Privacy, permissions, licenses and scope/limits | Initial information panels |
+
+Unavailable capabilities are explicitly marked as coming soon. The app must not display simulated scan results as real data.
+
+## Design system
+
+- Background: `#0A0A0B`
+- Surfaces: `#17171A` and `#202024`
+- Border: `#2C2C31`
+- Accent: `#E5322D`
+- Inter for interface text and JetBrains Mono for technical values (font packaging and license review are pending).
+- Compact 2–4 dp corners, 4/8 dp spacing grid, 1 dp borders and restrained motion.
+- Material 3, accessible touch targets and text/icon state indicators.
+
+## Technology
+
+- Kotlin, Android Gradle Plugin and Jetpack Compose + Material 3
 - Android Connectivity APIs
-
-## Current foundation
-- Dark graphite interface with restrained red accents, inspired by the Slim Executor visual language.
-- Network connection state and transport type.
-- Local IPv4 address, default route gateway, DNS servers, and interface name when Android exposes them.
-- No root requirement and no attempt to bypass Android platform restrictions.
+- JDK 17, Android SDK 35, minSdk 26, targetSdk 35
 
 ## Build
-Open the repository root in Android Studio, allow Gradle sync, then run the `app` configuration on an Android device or emulator.
 
-Requirements: JDK 17 and Android SDK 35.
+Open the repository root in Android Studio, sync Gradle and run the `app` configuration on an Android device or emulator.
+
+For a debug APK:
+
+```bash
+gradle :app:assembleDebug
+```
+
+Output: `app/build/outputs/apk/debug/app-debug.apk`.
+
+## Project standards
+
+The mandatory rules are documented in [docs/PROJECT_STANDARDS.md](docs/PROJECT_STANDARDS.md). Security reporting guidance is in [SECURITY.md](SECURITY.md), and changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Branch model
+
 - `main`: stable, reviewed releases.
 - `develop`: integration branch.
 - `feature/*`: isolated feature work.
 - `fix/*`: targeted fixes.
 - `release/*`: release stabilization.
 
-Feature branches merge into `develop` through pull requests. Only validated releases move from `develop` to `main`.
+Feature branches merge through reviewed pull requests. A release must pass CI and manual validation before it is promoted to `main`.
 
 ## Safety and privacy
-Network discovery and diagnostics must be limited to networks and devices the operator owns or is authorized to assess. Android may restrict access to Wi-Fi identifiers, neighboring devices, and low-level network operations. The app reports only data available through supported Android APIs.
+
+MNA is intended only for networks the operator owns or is authorized to assess. Network information is processed locally and is not sent to project-owned servers. See [PRIVACY.md](PRIVACY.md).
+
+The project license is intentionally not assumed; the repository owner must choose and approve MIT, Apache-2.0 or GPL before a stable public distribution.

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mobile Network Analyzer</string>
+    <string name="nav_overview">Resumen</string>
+    <string name="nav_devices">Dispositivos</string>
+    <string name="nav_diagnostics">Diagnóstico</string>
+    <string name="nav_updates">Actualizaciones</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="network_permission_notice">MNA lee los datos básicos de la conexión para mostrar el estado de tu red. Esta información permanece en el dispositivo.</string>
+    <string name="authorized_network_notice">Usa esta herramienta solo en redes que te pertenezcan o donde tengas permiso.</string>
+    <string name="coming_soon">Próximamente</string>
+    <string name="copy_value">Copiar valor</string>
+    <string name="refresh">Actualizar</string>
+    <string name="not_available">No disponible</string>
+    <string name="connected">Conectado</string>
+    <string name="disconnected">Desconectado</string>
+    <string name="loading">Cargando…</string>
+    <string name="empty_state">Todavía no hay resultados.</string>
+    <string name="error_generic">No se pudo completar la operación. Inténtalo de nuevo.</string>
+</resources>
