@@ -8,6 +8,15 @@ The Android app currently uses a single Gradle `:app` module. The presentation l
 
 The UI consumes presentation state and does not call Android network APIs directly.
 
+## Package layout (v0.2.0, still one `:app` module)
+
+- `core`: validation, version comparison and subnet maths (pure Kotlin, unit tested).
+- `data`: repositories for discovery, diagnostics, updates and settings.
+- `ui/theme`, `ui/components`: design tokens, buttons, cards and skeletons.
+- `ui/overview|devices|diagnostics|updates|settings`: screen + ViewModel per destination.
+
+These packages map one-to-one onto the target modules below, so extracting them later is mechanical.
+
 ## Target module boundaries
 
 The intended Gradle module layout is:
