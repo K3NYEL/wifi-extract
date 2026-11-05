@@ -2,15 +2,13 @@
 
 All notable changes to Mobile Network Analyzer are documented here.
 
-## [Unreleased]
-- Added the five-destination app shell based on the supplied mockup.
-- Moved network overview reads behind a ViewModel and StateFlow.
-- Added loading, error and coming-soon states; technical values can be copied.
-- Added project standards, security reporting guidance, privacy policy and initial Spanish/English strings.
-- Disabled app backups and cleartext traffic; configured a network security policy.
-- Enabled R8/resource shrinking for release builds and prepared release signing plus SHA-256 publication.
-- Added Dependabot configuration.
+## [0.1.2] - In preparation
+- Updates the Android package version to 0.1.2 (versionCode 3).
+- Adds a custom red-and-graphite launcher icon.
+- Carries forward the redesigned five-destination navigation and network overview.
+- Keeps device discovery, diagnostics and the verified updater explicitly unavailable until their implementations pass testing.
+- Release signing, APK verification and publication remain pending keystore setup and CI validation.
 
-## [0.1.0] - Unreleased
+## [0.1.0] - Initial foundation
 - Initial Android foundation.
 - Read-only overview of active network connection details.
