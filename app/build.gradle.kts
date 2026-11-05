@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -45,6 +47,8 @@ android {
     }
 
     buildFeatures { compose = true }
+    ndkVersion = "30.0.16248370"
+    buildToolsVersion = "36.0.0"
 }
 
 kotlin {
@@ -62,5 +66,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation("com.google.firebase:firebase-crashlytics:21.0.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
