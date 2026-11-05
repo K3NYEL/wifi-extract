@@ -1,6 +1,6 @@
 # Privacy Policy — Mobile Network Analyzer
 
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-05 (v0.2.0)
 
 Mobile Network Analyzer (MNA) is designed to inspect the local network connection on the Android device where it is installed.
 
@@ -14,7 +14,7 @@ Future discovery and diagnostic features may read additional local network infor
 
 The current app processes connection information locally on the device. It does not send IP addresses, MAC addresses, device names or scan results to project-owned servers. There are no identifying analytics or advertising SDKs.
 
-The updater, when implemented, will contact the official project GitHub Releases source to retrieve release metadata and installation files. It must verify the published SHA-256 checksum and APK signing certificate before offering the Android installation flow.
+The updater contacts the official project GitHub Releases source (api.github.com and github.com) to retrieve release metadata and installation files; GitHub may log your IP address. The check runs on start only if enabled in Settings, and can be disabled. The app verifies the published SHA-256 checksum and the APK signing certificate before offering the Android installation flow.
 
 ## Storage and control
 
@@ -22,7 +22,7 @@ MNA should store only information needed to provide a requested feature. Diagnos
 
 ## Permissions
 
-The current foundation declares Android network-state, Wi-Fi-state and Internet permissions. Any additional permission must be requested only when the related feature is used, with an explanation.
+The app declares Android network-state, Wi-Fi-state and Internet permissions, plus `REQUEST_INSTALL_PACKAGES`, used only to hand a verified update to the system installer. Any additional permission must be requested only when the related feature is used, with an explanation.
 
 ## Responsible use
 
