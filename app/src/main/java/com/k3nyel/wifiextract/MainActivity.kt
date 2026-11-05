@@ -32,6 +32,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SystemUpdate
+import com.k3nyel.wifiextract.ui.dashboard.DashboardScreen
 import com.k3nyel.wifiextract.ui.devices.DevicesScreen
 import com.k3nyel.wifiextract.ui.devices.DevicesViewModel
 import com.k3nyel.wifiextract.ui.diagnostics.DiagnosticsScreen
@@ -46,6 +53,7 @@ import com.k3nyel.wifiextract.ui.updates.UpdatesScreen
 import com.k3nyel.wifiextract.ui.updates.UpdatesViewModel
 
 private enum class Destination(val label: Int, val icon: ImageVector) {
+    Dashboard(R.string.nav_dashboard, Icons.Default.Dashboard),
     Overview(R.string.nav_overview, Icons.Default.Home),
     Devices(R.string.nav_devices, Icons.Default.Devices),
     Diagnostics(R.string.nav_diagnostics, Icons.Default.Build),
@@ -78,7 +86,7 @@ private fun MnaApp(
     updates: UpdatesViewModel,
     settings: SettingsViewModel
 ) {
-    var selected by rememberSaveable { mutableStateOf(Destination.Overview) }
+    var selected by rememberSaveable { mutableStateOf(Destination.Dashboard) }
     val context = LocalContext.current
     val updateState by updates.state.collectAsState()
     val installed = updates.installed
@@ -115,6 +123,16 @@ private fun MnaApp(
     ) { padding ->
         val modifier = Modifier.padding(padding)
         when (selected) {
+            Destination.Dashboard -> DashboardScreen(
+                networkState = network.state.collectAsState().value,
+                updateState = updateState,
+                deviceCount = devices.state.collectAsState().value.devices.size,
+                onNavigate = { index ->
+                    selected = Destination.entries[index]
+                },
+                onRefreshNetwork = network::refresh,
+                modifier = modifier
+            )
             Destination.Overview -> OverviewScreen(
                 state = network.state.collectAsState().value,
                 onRefresh = network::refresh,

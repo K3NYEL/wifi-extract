@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -106,6 +107,7 @@ fun DiagnosticsScreen(
                 }
             }
             Note("Cada comprobación va dirigida a un único host, es cancelable y tiene tiempo máximo. Úsalas solo en redes y equipos propios o con autorización.")
+            Spacer(Modifier.height(28.dp))
         }
     }
 }

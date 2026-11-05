@@ -1,10 +1,14 @@
 package com.k3nyel.wifiextract.ui.updates
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,6 +16,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.k3nyel.wifiextract.data.InstalledVersion
@@ -38,6 +43,7 @@ fun UpdatesScreen(
     onInstall: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     Column(modifier.fillMaxSize()) {
         ScreenHeader("Update Manager")
         Column(
@@ -79,6 +85,11 @@ fun UpdatesScreen(
                         Note("Ya tienes la versión más reciente publicada.")
                     }
                     SecondaryButton("Comprobar de nuevo", onCheck, Modifier.fillMaxWidth())
+                    state.latest?.pageUrl?.let { url ->
+                        SecondaryButton("Ver en GitHub", {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                        }, Modifier.fillMaxWidth())
+                    }
                 }
                 is UpdateUiState.Available -> {
                     ReleaseNotes(state.info)
@@ -86,6 +97,9 @@ fun UpdatesScreen(
                         PrimaryButton("Descargar", { onDownload(state.info) }, Modifier.weight(1f))
                         SecondaryButton("Comprobar", onCheck, Modifier.weight(1f))
                     }
+                    SecondaryButton("Ver en GitHub", {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(state.info.pageUrl)))
+                    }, Modifier.fillMaxWidth())
                     Note("Se verificarán el SHA-256 y la firma del APK antes de ofrecer la instalación.")
                 }
                 is UpdateUiState.Downloading -> {
@@ -129,6 +143,7 @@ fun UpdatesScreen(
                 }
             }
             Note("La instalación requiere permitir «instalar apps desconocidas» para MNA y confirmar en el sistema. Nada se instala en silencio.")
+            Spacer(Modifier.height(28.dp))
         }
     }
 }
