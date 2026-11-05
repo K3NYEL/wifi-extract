@@ -1,25 +1,48 @@
 # Architecture
 
-## Layers
+## Current implementation
 
-- **UI:** Jetpack Compose screens and reusable components.
-- **Presentation:** screen state and view models (introduced with feature modules).
-- **Domain:** network data models and use cases.
-- **Data:** Android platform adapters such as ConnectivityManager, WifiManager, and NsdManager.
+The Android app currently uses a single Gradle `:app` module. The presentation layer is Jetpack Compose. Network overview state is exposed by `NetworkOverviewViewModel` as a `StateFlow`; `NetworkInfoRepository` reads Android's `ConnectivityManager` and `LinkProperties` APIs on an IO coroutine dispatcher.
 
-## Initial data flow
+`MainActivity -> NetworkOverviewViewModel -> NetworkInfoRepository -> Android Connectivity APIs`
 
-`MainActivity -> NetworkInfoRepository -> ConnectivityManager / LinkProperties -> NetworkInfo -> Compose UI`
+The UI consumes presentation state and does not call Android network APIs directly.
 
-The initial implementation is read-only. It displays the active transport, local IPv4 addresses, default gateway, DNS servers, and interface name when available.
+## Target module boundaries
 
-## Planned modules
+The intended Gradle module layout is:
 
-1. **Device discovery:** use supported Android local service discovery APIs; distinguish advertised services from inferred devices.
-2. **Diagnostics:** user-initiated connectivity checks against explicitly entered, authorized targets.
-3. **History:** persist completed scan summaries locally.
-4. **Reports:** export user-selected diagnostic results.
+- `:app`: application entry point, navigation and dependency composition.
+- `:core`: shared domain models, validation, dispatchers and repository contracts.
+- `:design-system`: palette, typography, spacing tokens and reusable Compose components.
+- `:overview`: connection overview.
+- `:discovery`: local network device/service discovery.
+- `:diagnostics`: bounded and cancellable diagnostics.
+- `:updater`: official release metadata, APK hash and certificate verification.
+- `:settings`: preferences, privacy, scope/limits and third-party licenses.
+
+This is the target architecture; the repository has not yet been split into these Gradle modules.
+
+## Product information architecture
+
+The supplied HTML mockup defines six screens. The Android app maps them to five persistent bottom destinations:
+
+1. Overview — current connection state and technical details.
+2. Devices — authorized local network discovery.
+3. Diagnostics — connectivity and service checks.
+4. Updates — official release checking and verified installation flow.
+5. Settings — preferences, privacy, licenses, and the mockup's Scope and limits content.
+
+## Architecture rules
+
+- MVVM/UDF: ViewModels expose immutable UI state through StateFlow.
+- Repositories isolate Android platform APIs from Compose.
+- Network work uses coroutines, cancellation, timeouts and bounded concurrency.
+- Use dependency injection (Hilt or Koin) when module composition is introduced.
+- Unit-test subnet calculations, parsing and input validation; add Compose UI tests for critical flows.
+- Do not treat unavailable Android network information as proof that a host or service does not exist.
+- No scan is performed without a clear user action. Operations must be bounded, cancellable and limited to authorized networks.
 
 ## Platform constraints
 
-Android versions and OEM behavior affect which network details are visible. Wi-Fi identifiers and local network discovery can require runtime permissions or be restricted by platform policy. Do not treat unavailable data as proof that a device or service does not exist.
+Android version, OEM behavior and runtime permissions affect which network details are visible. Wi-Fi identifiers and local network discovery may be restricted. The app must explain limitations rather than bypass platform protections.
