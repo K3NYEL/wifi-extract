@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  assemble:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,5 +23,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+      - name: Android Lint
+        run: gradle :app:lintDebug
+      - name: Unit tests
+        run: gradle :app:testDebugUnitTest
       - name: Assemble debug APK
         run: gradle :app:assembleDebug
