@@ -21,8 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.k3nyel.wifiextract.R
 import com.k3nyel.wifiextract.data.SettingsRepository
 import com.k3nyel.wifiextract.ui.components.Eyebrow
 import com.k3nyel.wifiextract.ui.components.InfoRow
@@ -42,6 +44,7 @@ fun SettingsScreen(
     onResolveHostnames: (Boolean) -> Unit,
     onKeepScreenOn: (Boolean) -> Unit,
     onTimeout: (Int) -> Unit,
+    onOpenUpdates: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier.fillMaxSize()) {
@@ -50,6 +53,11 @@ fun SettingsScreen(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            MnaCard {
+                Eyebrow(stringResource(R.string.settings_updates_title))
+                Note(stringResource(R.string.settings_updates_desc))
+                PrimaryButton(stringResource(R.string.nav_updates), onOpenUpdates, Modifier.fillMaxWidth())
+            }
             ToggleRow("Comprobar actualizaciones al iniciar", state.checkUpdatesOnStart, onCheckUpdates)
             ToggleRow("Resolver nombres de host", state.resolveHostnames, onResolveHostnames)
             ToggleRow("Mantener pantalla activa al escanear", state.keepScreenOn, onKeepScreenOn)
