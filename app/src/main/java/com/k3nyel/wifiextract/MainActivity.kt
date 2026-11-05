@@ -117,7 +117,6 @@ private fun MnaApp(
         when (selected) {
             Destination.Overview -> OverviewScreen(
                 state = network.state.collectAsState().value,
-                versionName = installed.name,
                 onRefresh = network::refresh,
                 modifier = modifier
             )
