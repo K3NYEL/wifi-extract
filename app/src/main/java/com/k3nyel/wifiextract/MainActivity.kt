@@ -6,10 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -32,12 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.Devices
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SystemUpdate
 import com.k3nyel.wifiextract.ui.dashboard.DashboardScreen
 import com.k3nyel.wifiextract.ui.devices.DevicesScreen
 import com.k3nyel.wifiextract.ui.devices.DevicesViewModel
@@ -55,10 +48,14 @@ import com.k3nyel.wifiextract.ui.updates.UpdatesViewModel
 private enum class Destination(val label: Int, val icon: ImageVector) {
     Dashboard(R.string.nav_dashboard, Icons.Default.Dashboard),
     Overview(R.string.nav_overview, Icons.Default.Home),
-    Devices(R.string.nav_devices, Icons.Default.Devices),
     Diagnostics(R.string.nav_diagnostics, Icons.Default.Build),
-    Updates(R.string.nav_updates, Icons.Default.SystemUpdate),
     Settings(R.string.nav_settings, Icons.Default.Settings)
+}
+
+private sealed interface CurrentScreen {
+    data class Tab(val destination: Destination) : CurrentScreen
+    data object Devices : CurrentScreen
+    data object Updates : CurrentScreen
 }
 
 class MainActivity : ComponentActivity() {
@@ -86,10 +83,12 @@ private fun MnaApp(
     updates: UpdatesViewModel,
     settings: SettingsViewModel
 ) {
-    var selected by rememberSaveable { mutableStateOf(Destination.Dashboard) }
+    var currentScreen by rememberSaveable { mutableStateOf<CurrentScreen>(CurrentScreen.Tab(Destination.Dashboard)) }
     val context = LocalContext.current
     val updateState by updates.state.collectAsState()
     val installed = updates.installed
+
+    val selectedTab = (currentScreen as? CurrentScreen.Tab)?.destination
 
     Scaffold(
         containerColor = MnaColors.Background,
@@ -97,12 +96,13 @@ private fun MnaApp(
             NavigationBar(containerColor = MnaColors.NavBar, contentColor = MnaColors.TextPrimary, tonalElevation = 0.dp) {
                 Destination.entries.forEach { destination ->
                     val label = stringResource(destination.label)
+                    val isSelected = selectedTab == destination
                     NavigationBarItem(
-                        selected = selected == destination,
-                        onClick = { selected = destination },
+                        selected = isSelected,
+                        onClick = { currentScreen = CurrentScreen.Tab(destination) },
                         icon = {
                             BadgedBox(badge = {
-                                if (destination == Destination.Updates && updateState is UpdateUiState.Available) {
+                                if (destination == Destination.Settings && updateState is UpdateUiState.Available) {
                                     Badge(containerColor = MnaColors.Accent)
                                 }
                             }) { Icon(destination.icon, contentDescription = label) }
@@ -122,57 +122,62 @@ private fun MnaApp(
         }
     ) { padding ->
         val modifier = Modifier.padding(padding)
-        when (selected) {
-            Destination.Dashboard -> DashboardScreen(
-                networkState = network.state.collectAsState().value,
-                updateState = updateState,
-                deviceCount = devices.state.collectAsState().value.devices.size,
-                onNavigate = { index ->
-                    selected = Destination.entries[index]
-                },
-                onRefreshNetwork = network::refresh,
-                modifier = modifier
-            )
-            Destination.Overview -> OverviewScreen(
-                state = network.state.collectAsState().value,
-                onRefresh = network::refresh,
-                modifier = modifier
-            )
-            Destination.Devices -> DevicesScreen(
+        when (val screen = currentScreen) {
+            is CurrentScreen.Tab -> {
+                when (screen.destination) {
+                    Destination.Dashboard -> DashboardScreen(
+                        networkState = network.state.collectAsState().value,
+                        updateState = updateState,
+                        deviceCount = devices.state.collectAsState().value.devices.size,
+                        onOpenDevices = { currentScreen = CurrentScreen.Devices },
+                        onOpenDiagnostics = { currentScreen = CurrentScreen.Tab(Destination.Diagnostics) },
+                        onOpenUpdates = { currentScreen = CurrentScreen.Updates },
+                        onRefreshNetwork = network::refresh,
+                        modifier = modifier
+                    )
+                    Destination.Overview -> OverviewScreen(
+                        state = network.state.collectAsState().value,
+                        onRefresh = network::refresh,
+                        modifier = modifier
+                    )
+                    Destination.Diagnostics -> DiagnosticsScreen(
+                        state = diagnostics.state.collectAsState().value,
+                        onTool = diagnostics::selectTool,
+                        onHost = diagnostics::setHost,
+                        onPort = diagnostics::setPort,
+                        onRun = diagnostics::run,
+                        onCancel = diagnostics::cancel,
+                        modifier = modifier
+                    )
+                    Destination.Settings -> SettingsScreen(
+                        state = settings.state.collectAsState().value,
+                        versionLabel = "${installed.name} (${installed.code})",
+                        onCheckUpdates = settings::setCheckUpdates,
+                        onResolveHostnames = settings::setResolveHostnames,
+                        onKeepScreenOn = settings::setKeepScreenOn,
+                        onTimeout = settings::setTimeout,
+                        onOpenUpdates = { currentScreen = CurrentScreen.Updates },
+                        modifier = modifier
+                    )
+                }
+            }
+            CurrentScreen.Devices -> DevicesScreen(
                 state = devices.state.collectAsState().value,
                 onScan = devices::startScan,
                 onStop = devices::stopScan,
                 onPing = { host ->
                     diagnostics.prefill(host)
-                    selected = Destination.Diagnostics
+                    currentScreen = CurrentScreen.Tab(Destination.Diagnostics)
                 },
                 modifier = modifier
             )
-            Destination.Diagnostics -> DiagnosticsScreen(
-                state = diagnostics.state.collectAsState().value,
-                onTool = diagnostics::selectTool,
-                onHost = diagnostics::setHost,
-                onPort = diagnostics::setPort,
-                onRun = diagnostics::run,
-                onCancel = diagnostics::cancel,
-                modifier = modifier
-            )
-            Destination.Updates -> UpdatesScreen(
+            CurrentScreen.Updates -> UpdatesScreen(
                 state = updateState,
                 installed = installed,
                 onCheck = updates::check,
                 onDownload = updates::download,
                 onCancel = updates::cancelDownload,
                 onInstall = { updates.install(context) },
-                modifier = modifier
-            )
-            Destination.Settings -> SettingsScreen(
-                state = settings.state.collectAsState().value,
-                versionLabel = "${installed.name} (${installed.code})",
-                onCheckUpdates = settings::setCheckUpdates,
-                onResolveHostnames = settings::setResolveHostnames,
-                onKeepScreenOn = settings::setKeepScreenOn,
-                onTimeout = settings::setTimeout,
                 modifier = modifier
             )
         }

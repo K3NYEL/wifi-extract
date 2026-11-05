@@ -18,4 +18,6 @@
     <string name="loading">Cargando…</string>
     <string name="empty_state">Todavía no hay resultados.</string>
     <string name="error_generic">No se pudo completar la operación. Inténtalo de nuevo.</string>
+    <string name="settings_updates_title">Actualizaciones</string>
+    <string name="settings_updates_desc">Comprobar nuevas versiones y notas de cambios</string>
 </resources>

@@ -43,7 +43,9 @@ fun DashboardScreen(
     networkState: NetworkUiState,
     updateState: UpdateUiState,
     deviceCount: Int,
-    onNavigate: (Int) -> Unit,
+    onOpenDevices: () -> Unit,
+    onOpenDiagnostics: () -> Unit,
+    onOpenUpdates: () -> Unit,
     onRefreshNetwork: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -62,7 +64,7 @@ fun DashboardScreen(
                                 Eyebrow("ACTUALIZACIÓN DISPONIBLE")
                                 Text(updateState.info.tag, color = MnaColors.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             }
-                            PrimaryButton("Ver", { onNavigate(4) }, Modifier.height(40.dp))
+                            PrimaryButton("Ver", onOpenUpdates, Modifier.height(40.dp))
                         }
                     }
                 }
@@ -99,12 +101,12 @@ fun DashboardScreen(
                 MnaCard {
                     Eyebrow("ACCESOS DIRECTOS")
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        DashboardActionButton("Dispositivos", Icons.Default.Devices, Modifier.weight(1f)) { onNavigate(2) }
-                        DashboardActionButton("Diagnóstico", Icons.Default.Build, Modifier.weight(1f)) { onNavigate(3) }
+                        DashboardActionButton("Dispositivos", Icons.Default.Devices, Modifier.weight(1f), onOpenDevices)
+                        DashboardActionButton("Diagnóstico", Icons.Default.Build, Modifier.weight(1f), onOpenDiagnostics)
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        DashboardActionButton("Actualizar", Icons.Default.SystemUpdate, Modifier.weight(1f)) { onNavigate(4) }
-                        DashboardActionButton("Refrescar Red", Icons.Default.Refresh, Modifier.weight(1f)) { onRefreshNetwork() }
+                        DashboardActionButton("Actualizar", Icons.Default.SystemUpdate, Modifier.weight(1f), onOpenUpdates)
+                        DashboardActionButton("Refrescar Red", Icons.Default.Refresh, Modifier.weight(1f), onRefreshNetwork)
                     }
                 }
             }
