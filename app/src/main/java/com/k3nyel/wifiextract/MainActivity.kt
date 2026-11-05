@@ -228,7 +228,7 @@ private fun OverviewScreen(state: NetworkUiState, onRefresh: () -> Unit, modifie
                 )
             }
         }
-        item { Text("MNA  /  ANDROID  /  0.1.0", color = TextSecondary, fontSize = 11.sp, letterSpacing = 1.sp) }
+        item { Text("MNA  /  ANDROID  /  0.1.2", color = TextSecondary, fontSize = 11.sp, letterSpacing = 1.sp) }
     }
 }
 
