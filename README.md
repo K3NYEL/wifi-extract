@@ -9,10 +9,10 @@ The six-screen HTML mockup supplied for this project is the product's visual and
 | Destination | Purpose | Current status |
 |---|---|---|
 | Overview | Connection state, transport, IPv4, gateway, DNS and interface | Implemented as read-only overview |
-| Devices | Discover devices visible on the connected local network | Coming soon |
-| Diagnostics | Bounded, cancellable connectivity checks | Coming soon |
-| Updates | Official GitHub Releases, APK signature and SHA-256 verification | UI marked coming soon; updater not implemented |
-| Settings | Privacy, permissions, licenses and scope/limits | Initial information panels |
+| Devices | Discover devices visible on the connected local network | Implemented: bounded /24 reachability sweep |
+| Diagnostics | Bounded, cancellable connectivity checks | Ping, DNS and TCP port implemented; traceroute coming soon |
+| Updates | Official GitHub Releases, APK signature and SHA-256 verification | Implemented; requires a published release with APK + `.sha256` |
+| Settings | Preferences, privacy, permissions, licenses and scope/limits | Implemented (licenses inventory pending) |
 
 Unavailable capabilities are explicitly marked as coming soon. The app must not display simulated scan results as real data.
 
@@ -20,10 +20,10 @@ Unavailable capabilities are explicitly marked as coming soon. The app must not 
 
 - Background: `#0A0A0B`
 - Surfaces: `#17171A` and `#202024`
-- Border: `#2C2C31`
+- No gray borders: surfaces separate content
 - Accent: `#E5322D`
 - Inter for interface text and JetBrains Mono for technical values (font packaging and license review are pending).
-- Compact 2–4 dp corners, 4/8 dp spacing grid, 1 dp borders and restrained motion.
+- 4 dp cards, 12 dp buttons, 4/8 dp spacing grid and restrained motion (skeleton pulse only).
 - Material 3, accessible touch targets and text/icon state indicators.
 
 ## Technology
