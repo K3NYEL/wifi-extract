@@ -54,12 +54,6 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier, trailing: @Compos
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Box(
-            modifier = Modifier.size(28.dp).background(MnaColors.Accent, MnaShapes.Card),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("M", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-        }
         Text(title, modifier = Modifier.weight(1f), color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
         trailing()
     }

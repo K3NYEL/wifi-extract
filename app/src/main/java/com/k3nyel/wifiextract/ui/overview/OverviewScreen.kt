@@ -35,7 +35,7 @@ import com.k3nyel.wifiextract.ui.components.StatusChip
 import com.k3nyel.wifiextract.ui.theme.MnaColors
 
 @Composable
-fun OverviewScreen(state: NetworkUiState, versionName: String, onRefresh: () -> Unit, modifier: Modifier = Modifier) {
+fun OverviewScreen(state: NetworkUiState, onRefresh: () -> Unit, modifier: Modifier = Modifier) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     Column(modifier.fillMaxSize()) {
@@ -101,7 +101,6 @@ fun OverviewScreen(state: NetworkUiState, versionName: String, onRefresh: () -> 
                 Eyebrow("USO RESPONSABLE")
                 Note(stringResource(R.string.authorized_network_notice))
             }
-            Text("MNA / ANDROID / $versionName", color = MnaColors.TextSecondary, fontSize = 11.sp, letterSpacing = 1.sp)
         }
     }
 }
