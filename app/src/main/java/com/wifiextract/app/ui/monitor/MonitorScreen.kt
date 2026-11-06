@@ -33,8 +33,7 @@ import com.wifiextract.app.ui.theme.MnaColors
 
 private data class MonitorCapability(
     val hasWifi: Boolean,
-    val androidVersion: String,
-    val rawCaptureAvailable: Boolean = false
+    val androidVersion: String
 )
 
 private fun readMonitorCapability(context: Context): MonitorCapability {
