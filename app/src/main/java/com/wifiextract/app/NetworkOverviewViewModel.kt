@@ -21,12 +21,19 @@ class NetworkOverviewViewModel(application: Application) : AndroidViewModel(appl
     val state: StateFlow<NetworkUiState> = _state.asStateFlow()
 
     init {
-        refresh()
+        observeNetwork()
+    }
+
+    private fun observeNetwork() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.observeNetworkInfo().collect { info ->
+                _state.value = NetworkUiState.Success(info)
+            }
+        }
     }
 
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
-            _state.value = NetworkUiState.Loading
             runCatching { repository.read() }
                 .onSuccess { _state.value = NetworkUiState.Success(it) }
                 .onFailure {

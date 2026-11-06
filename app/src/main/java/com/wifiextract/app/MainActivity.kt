@@ -3,6 +3,8 @@ package com.wifiextract.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
@@ -16,6 +18,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -56,6 +59,7 @@ enum class Screen(val label: Int? = null, val icon: ImageVector? = null, val isT
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val provider = ViewModelProvider(this)
         val network = provider[NetworkOverviewViewModel::class.java]
@@ -87,30 +91,36 @@ private fun MnaApp(
     Scaffold(
         containerColor = MnaColors.Background,
         bottomBar = {
-            NavigationBar(containerColor = MnaColors.NavBar, contentColor = MnaColors.TextPrimary, tonalElevation = 0.dp) {
-                Screen.entries.filter { it.isTab }.forEach { screen ->
-                    val label = stringResource(screen.label!!)
-                    val isSelected = currentScreen == screen
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = { currentScreen = screen },
-                        icon = {
-                            BadgedBox(badge = {
-                                if (screen == Screen.Settings && updateState is UpdateUiState.Available) {
-                                    Badge(containerColor = MnaColors.Accent)
-                                }
-                            }) { Icon(screen.icon!!, contentDescription = label) }
-                        },
-                        label = { Text(label, fontSize = 11.sp) },
-                        alwaysShowLabel = true,
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MnaColors.AccentText,
-                            selectedTextColor = MnaColors.AccentText,
-                            unselectedIconColor = MnaColors.TextSecondary,
-                            unselectedTextColor = MnaColors.TextSecondary,
-                            indicatorColor = Color.Transparent
+            Surface(color = MnaColors.NavBar, modifier = Modifier.fillMaxWidth()) {
+                NavigationBar(
+                    containerColor = MnaColors.NavBar,
+                    contentColor = MnaColors.TextPrimary,
+                    tonalElevation = 0.dp
+                ) {
+                    Screen.entries.filter { it.isTab }.forEach { screen ->
+                        val label = stringResource(screen.label!!)
+                        val isSelected = currentScreen == screen
+                        NavigationBarItem(
+                            selected = isSelected,
+                            onClick = { currentScreen = screen },
+                            icon = {
+                                BadgedBox(badge = {
+                                    if (screen == Screen.Settings && updateState is UpdateUiState.Available) {
+                                        Badge(containerColor = MnaColors.Accent)
+                                    }
+                                }) { Icon(screen.icon!!, contentDescription = label) }
+                            },
+                            label = { Text(label, fontSize = 11.sp) },
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MnaColors.AccentText,
+                                selectedTextColor = MnaColors.AccentText,
+                                unselectedIconColor = MnaColors.TextSecondary,
+                                unselectedTextColor = MnaColors.TextSecondary,
+                                indicatorColor = Color.Transparent
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

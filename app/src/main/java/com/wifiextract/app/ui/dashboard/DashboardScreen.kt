@@ -84,8 +84,8 @@ fun DashboardScreen(
                         MnaCard {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Eyebrow("ESTADO ACTUAL")
-                                if (info.connected) StatusChip("CONECTADO", MnaColors.Success)
-                                else StatusChip("SIN CONEXIÓN", MnaColors.AccentText)
+                                if (info.connected) StatusChip("CONECTADO", MnaColors.Connected)
+                                else StatusChip("SIN CONEXIÓN", MnaColors.Disconnected)
                             }
                             Text(info.transport, color = MnaColors.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                             InfoRow("IPv4", info.localAddress)
