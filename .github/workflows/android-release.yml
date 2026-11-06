@@ -22,10 +22,7 @@
           mkdir -p "$VERIFY_DIR"
 
           RELEASE_JSON="$(gh release view "$GITHUB_REF_NAME" --json isDraft,isPrerelease,assets)"
-          echo "$RELEASE_JSON" | jq -e '
-            .isDraft == false and
-            ([.assets[].name] | index(env.APK) != null)
-          ' >/dev/null
+          echo "$RELEASE_JSON" | jq -e '.isDraft == false' >/dev/null
 
           echo "$RELEASE_JSON" | jq -e --arg apk "$APK" --arg checksum "$CHECKSUM" '
             ([.assets[].name] | index($apk) != null) and
