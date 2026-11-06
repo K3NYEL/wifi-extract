@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SystemUpdate
-import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -47,7 +46,6 @@ fun DashboardScreen(
     onOpenDevices: () -> Unit,
     onOpenDiagnostics: () -> Unit,
     onOpenUpdates: () -> Unit,
-    onOpenMonitor: () -> Unit,
     onRefreshNetwork: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -109,9 +107,6 @@ fun DashboardScreen(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         DashboardActionButton("Actualizar", Icons.Default.SystemUpdate, Modifier.weight(1f), onOpenUpdates)
                         DashboardActionButton("Refrescar Red", Icons.Default.Refresh, Modifier.weight(1f), onRefreshNetwork)
-                    }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        DashboardActionButton("Modo monitor", Icons.Default.Wifi, Modifier.weight(1f), onOpenMonitor)
                     }
                 }
             }
