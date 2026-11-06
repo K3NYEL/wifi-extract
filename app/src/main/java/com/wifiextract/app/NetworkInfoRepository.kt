@@ -2,8 +2,16 @@ package com.wifiextract.app
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.LinkProperties
+import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.os.Build
 import com.wifiextract.app.core.Subnet
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import java.net.Inet4Address
 
 data class NetworkInfo(
@@ -40,10 +48,12 @@ class NetworkInfoRepository(context: Context) {
         val gateway = links?.routes?.firstOrNull { it.isDefaultRoute && it.gateway is Inet4Address }?.gateway?.hostAddress
         val dns = links?.dnsServers.orEmpty().joinToString(" · ") { it.hostAddress.orEmpty() }
 
+        val isConnected = caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+
         return NetworkInfo(
-            connected = caps != null,
+            connected = isConnected,
             transport = transport,
-            networkType = if (caps != null) "Red activa" else "Sin conexión",
+            networkType = if (isConnected) "Red activa" else "Sin conexión",
             localAddress = ipv4?.address?.hostAddress ?: NOT_AVAILABLE,
             prefixLength = prefix,
             subnetMask = Subnet.maskString(prefix).ifBlank { NOT_AVAILABLE },
@@ -52,6 +62,39 @@ class NetworkInfoRepository(context: Context) {
             interfaceName = links?.interfaceName ?: NOT_AVAILABLE
         )
     }
+
+    fun observeNetworkInfo(): Flow<NetworkInfo> = callbackFlow {
+        trySend(read())
+
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                trySend(read())
+            }
+
+            override fun onLost(network: Network) {
+                trySend(read())
+            }
+
+            override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+                trySend(read())
+            }
+
+            override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+                trySend(read())
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            manager.registerDefaultNetworkCallback(callback)
+        } else {
+            val request = NetworkRequest.Builder().build()
+            manager.registerNetworkCallback(request, callback)
+        }
+
+        awaitClose {
+            runCatching { manager.unregisterNetworkCallback(callback) }
+        }
+    }.distinctUntilChanged()
 
     companion object {
         const val NOT_AVAILABLE = "No disponible"

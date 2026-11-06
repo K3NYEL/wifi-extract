@@ -65,8 +65,8 @@ fun OverviewScreen(state: NetworkUiState, onRefresh: () -> Unit, modifier: Modif
                     MnaCard {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Eyebrow("ESTADO")
-                            if (info.connected) StatusChip("CONECTADO", MnaColors.Success)
-                            else StatusChip("SIN CONEXIÓN", MnaColors.AccentText)
+                            if (info.connected) StatusChip("CONECTADO", MnaColors.Connected)
+                            else StatusChip("SIN CONEXIÓN", MnaColors.Disconnected)
                         }
                         Text(info.transport, color = MnaColors.TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
                         Note(info.networkType)

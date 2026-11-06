@@ -19,7 +19,9 @@ object MnaColors {
     val AccentText = Color(0xFFFF5A55)    // small red text on dark surfaces
     val TextPrimary = Color(0xFFF2F2F3)
     val TextSecondary = Color(0xFFA0A0A8)
-    val Success = Color(0xFF4ADE80)
+    val Connected = Color(0xFF38BDF8)     // High-contrast cyan blue for active connection (non-green)
+    val Disconnected = Color(0xFFFF5A55)  // Coral red for disconnected
+    val Success = Color(0xFF38BDF8)
     val Warning = Color(0xFFE5B45C)
 }
 
