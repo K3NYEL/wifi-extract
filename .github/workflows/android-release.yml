@@ -46,9 +46,17 @@ jobs:
           gradle :app:assembleRelease
 
       - name: Prepare release files and checksum
+        shell: bash
         run: |
+          APK_SOURCE="app/build/outputs/apk/release/app-release.apk"
           APK="MobileNetworkAnalyzer-${GITHUB_REF_NAME}-android.apk"
-          cp app/build/outputs/apk/release/app-release.apk "$APK"
+          
+          test -f "$APK_SOURCE" || {
+          echo "::error::APK not found"
+          exit 1
+          }
+          
+          cp "$APK_SOURCE" "$APK"
           sha256sum "$APK" > "$APK.sha256"
 
       - name: Publish GitHub Release
