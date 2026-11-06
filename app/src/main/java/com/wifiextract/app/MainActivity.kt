@@ -40,6 +40,7 @@ import com.wifiextract.app.ui.devices.DevicesViewModel
 import com.wifiextract.app.ui.diagnostics.DiagnosticsScreen
 import com.wifiextract.app.ui.diagnostics.DiagnosticsViewModel
 import com.wifiextract.app.ui.overview.OverviewScreen
+import com.wifiextract.app.ui.monitor.MonitorScreen
 import com.wifiextract.app.ui.settings.SettingsScreen
 import com.wifiextract.app.ui.settings.SettingsViewModel
 import com.wifiextract.app.ui.theme.MnaColors
@@ -54,7 +55,8 @@ enum class Screen(val label: Int? = null, val icon: ImageVector? = null, val isT
     Diagnostics(R.string.nav_diagnostics, Icons.Default.Build),
     Settings(R.string.nav_settings, Icons.Default.Settings),
     Devices(isTab = false),
-    Updates(isTab = false)
+    Updates(isTab = false),
+    Monitor(isTab = false)
 }
 
 class MainActivity : ComponentActivity() {
@@ -134,6 +136,7 @@ private fun MnaApp(
                 onOpenDevices = { currentScreen = Screen.Devices },
                 onOpenDiagnostics = { currentScreen = Screen.Diagnostics },
                 onOpenUpdates = { currentScreen = Screen.Updates },
+                onOpenMonitor = { currentScreen = Screen.Monitor },
                 onRefreshNetwork = network::refresh,
                 modifier = modifier
             )
@@ -171,6 +174,7 @@ private fun MnaApp(
                 },
                 modifier = modifier
             )
+            Screen.Monitor -> MonitorScreen(modifier = modifier)
             Screen.Updates -> UpdatesScreen(
                 state = updateState,
                 installed = installed,
