@@ -52,16 +52,6 @@ The supplied HTML mockup defines six screens. The Android app maps them to five 
 - Do not treat unavailable Android network information as proof that a host or service does not exist.
 - No scan is performed without a clear user action. Operations must be bounded, cancellable and limited to authorized networks.
 
-## 802.11 monitor mode
-
-The initial Monitor screen reports platform capability limits only; it does not claim that packet capture is active. Standard Android application APIs do not provide a public switch for raw 802.11 monitor capture. Actual support must be validated against the device chipset, vendor driver, Android build and any explicitly supported capture interface. The feature must remain unavailable when those requirements cannot be verified. The first implementation does not collect frame payloads, inject frames or attempt privileged driver changes.
-
-### 802.11 frame API (`core.dot11`)
-
-`Dot11FrameApi` is the entry point for a future capture provider: it accepts raw radiotap or bare 802.11 bytes (`ingestRadiotap`, `ingest`) and exposes parsed metadata (`frames(filter)`), statistics and observed networks (`stats()`), and a listener hook. `Dot11Parser` is passive and total: malformed input yields `Dot11ParseResult.Malformed`, never an exception. It keeps header fields and, for beacons/probe responses, SSID, channel and security class; payload bytes are discarded. Memory is bounded (ring buffer, network and channel caps). There is no transmit or injection path. `Dot11Frame.toMonitorFrame()` adapts results to the existing `MonitorBackend` contract. With no provider, the API returns empty data; it never fabricates frames.
-
-`Dot11MonitorBackend` (ui/monitor) implements `MonitorBackend` on top of this API. It takes a `CaptureProvider` (the receive-only source of radiotap captures) and must be inspected before starting; without a provider it behaves like `AndroidPublicApiMonitorBackend` and refuses to start. No provider ships yet, so the app still reports capture as unavailable.
-
 ## Platform constraints
 
 Android version, OEM behavior and runtime permissions affect which network details are visible. Wi-Fi identifiers and local network discovery may be restricted. The app must explain limitations rather than bypass platform protections.
