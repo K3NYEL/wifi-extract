@@ -84,7 +84,7 @@ fun SettingsScreen(
                 Eyebrow("ALCANCE Y LÍMITES")
                 listOf(
                     "Solo redes locales a las que el dispositivo ya está conectado",
-                    "Sin captura de paquetes ni modo monitor (requiere root)",
+                    "Sin captura de paquetes 802.11",
                     "MAC y fabricante limitados desde Android 10+",
                     "Sin acceso a dispositivos ni credenciales de terceros",
                     "Escaneos activos solo con acción explícita del usuario",
