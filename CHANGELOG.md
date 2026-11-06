@@ -2,6 +2,9 @@
 
 All notable changes to Mobile Network Analyzer are documented here.
 
+## [Unreleased]
+- Adds passive 802.11 frame API (`core.dot11`): radiotap + 802.11 parser, bounded frame buffer, stats, observed networks, unit tests.
+
 ## [0.2.0] - 2026-11-05
 - Adds Dashboard (Panel) home screen and streamlines bottom navigation (Dashboard, Overview, Diagnostics, Settings).
 - Moves Update Manager option directly into Settings.
