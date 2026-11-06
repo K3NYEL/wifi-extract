@@ -52,6 +52,10 @@ The supplied HTML mockup defines six screens. The Android app maps them to five 
 - Do not treat unavailable Android network information as proof that a host or service does not exist.
 - No scan is performed without a clear user action. Operations must be bounded, cancellable and limited to authorized networks.
 
+## 802.11 monitor mode
+
+The initial Monitor screen reports platform capability limits only; it does not claim that packet capture is active. Standard Android application APIs do not provide a public switch for raw 802.11 monitor capture. Actual support must be validated against the device chipset, vendor driver, Android build and any explicitly supported capture interface. The feature must remain unavailable when those requirements cannot be verified. The first implementation does not collect frame payloads, inject frames or attempt privileged driver changes.
+
 ## Platform constraints
 
 Android version, OEM behavior and runtime permissions affect which network details are visible. Wi-Fi identifiers and local network discovery may be restricted. The app must explain limitations rather than bypass platform protections.
