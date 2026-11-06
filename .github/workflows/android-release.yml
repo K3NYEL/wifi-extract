@@ -48,7 +48,6 @@ jobs:
       - name: Prepare release files and checksum
         run: |
           APK="MobileNetworkAnalyzer-${GITHUB_REF_NAME}-android.apk"
-          cp app/build/outputs/apk/release/app-release.apk "$APK"
           sha256sum "$APK" > "$APK.sha256"
 
       - name: Publish GitHub Release
