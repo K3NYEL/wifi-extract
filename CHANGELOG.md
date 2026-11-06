@@ -4,6 +4,7 @@ All notable changes to Mobile Network Analyzer are documented here.
 
 ## [Unreleased]
 - Adds passive 802.11 frame API (`core.dot11`): radiotap + 802.11 parser, bounded frame buffer, stats, observed networks, unit tests.
+- Adds `Dot11MonitorBackend` and the `CaptureProvider` contract connecting a future capture provider to the frame API. No provider is bundled, so capture stays unavailable on stock Android.
 
 ## [0.2.0] - 2026-11-05
 - Adds Dashboard (Panel) home screen and streamlines bottom navigation (Dashboard, Overview, Diagnostics, Settings).
