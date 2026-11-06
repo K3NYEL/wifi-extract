@@ -5,7 +5,6 @@
     <string name="nav_overview">Overview</string>
     <string name="nav_devices">Devices</string>
     <string name="nav_diagnostics">Diagnostics</string>
-    <string name="nav_monitor">Monitor mode</string>
     <string name="nav_updates">Updates</string>
     <string name="nav_settings">Settings</string>
     <string name="network_permission_notice">MNA reads basic connection details to show your network status. This information stays on your device.</string>
