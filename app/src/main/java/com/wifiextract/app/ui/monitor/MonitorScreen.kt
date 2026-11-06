@@ -1,8 +1,5 @@
 package com.wifiextract.app.ui.monitor
 
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,9 +13,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,23 +34,11 @@ import com.wifiextract.app.ui.components.ScreenHeader
 import com.wifiextract.app.ui.components.StatusChip
 import com.wifiextract.app.ui.theme.MnaColors
 
-private data class MonitorCapability(
-    val hasWifi: Boolean,
-    val androidVersion: String
-)
-
-private fun readMonitorCapability(context: Context): MonitorCapability {
-    val hasWifi = context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI)
-    return MonitorCapability(
-        hasWifi = hasWifi,
-        androidVersion = Build.VERSION.RELEASE ?: Build.VERSION.SDK_INT.toString()
-    )
-}
-
 @Composable
 fun MonitorScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val capability = readMonitorCapability(context)
+    val backend = remember { AndroidPublicApiMonitorBackend() }
+    var capability by remember { mutableStateOf(backend.inspect(context)) }
 
     Column(modifier.fillMaxSize()) {
         ScreenHeader("Modo monitor")
@@ -65,9 +56,12 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Eyebrow("CAPTURA 802.11")
-                    StatusChip("INACTIVO", MnaColors.Warning)
+                    StatusChip("NO DISPONIBLE", MnaColors.Warning)
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     Icon(Icons.Default.Wifi, contentDescription = null, tint = MnaColors.Accent)
                     Text(
                         "Monitor de tramas Wi-Fi",
@@ -77,34 +71,58 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                     )
                 }
                 Text(
-                    "La captura todavía no está disponible en este dispositivo. Android no ofrece una API pública estándar para activar el modo monitor 802.11 ni entregar tramas sin procesar a una aplicación normal.",
+                    capability.explanation,
                     color = MnaColors.TextSecondary,
                     fontSize = 13.sp,
                     lineHeight = 19.sp
                 )
+                Button(
+                    onClick = { capability = backend.inspect(context) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MnaColors.Accent,
+                        contentColor = MnaColors.AccentText
+                    )
+                ) {
+                    Text("Volver a comprobar")
+                }
             }
 
             MnaCard {
-                Eyebrow("COMPATIBILIDAD DEL DISPOSITIVO")
-                InfoLine("Wi-Fi", if (capability.hasWifi) "Hardware Wi-Fi detectado" else "No se detectó hardware Wi-Fi")
-                InfoLine("Android", capability.androidVersion)
-                InfoLine("Acceso a tramas 802.11", "No disponible mediante API estándar")
-                InfoLine("Estado de captura", "No iniciada")
+                Eyebrow("DIAGNÓSTICO DEL BACKEND")
+                InfoLine(
+                    "Hardware Wi-Fi",
+                    if (capability.wifiHardwareDetected) "Detectado" else "No detectado"
+                )
+                InfoLine("Versión de Android", capability.androidVersion)
+                InfoLine("Proveedor consultado", capability.providerName)
+                InfoLine(
+                    "Acceso a tramas 802.11",
+                    if (capability.rawFrameCaptureAvailable) "Disponible" else "No disponible"
+                )
+                InfoLine("Captura", "Detenida")
             }
 
             MnaCard {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Icon(Icons.Default.Info, contentDescription = null, tint = MnaColors.Accent)
-                    Text("Qué falta para habilitarlo", color = MnaColors.TextPrimary, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Qué significa este resultado",
+                        color = MnaColors.TextPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
                 Text(
-                    "La compatibilidad depende del chipset Wi-Fi, del controlador del fabricante y de la posibilidad de usar una interfaz de captura compatible. Tener Android 14 o permisos de ubicación no garantiza el modo monitor.",
+                    "Detectar un adaptador Wi-Fi no demuestra que admita monitor mode. Para habilitar la captura real hace falta un proveedor compatible con el chipset y su controlador; Android estándar no lo proporciona.",
                     color = MnaColors.TextSecondary,
                     fontSize = 13.sp,
                     lineHeight = 19.sp
                 )
                 Text(
-                    "La aplicación no intentará activar funciones privilegiadas ni mostrará datos de captura simulados. La siguiente etapa será comprobar las capacidades reales del hardware y definir un proveedor de captura compatible.",
+                    "Esta versión no muestra paquetes de ejemplo ni intenta iniciar una captura inexistente. El backend está separado de la interfaz para poder incorporar un proveedor compatible cuando se confirme que el dispositivo lo admite.",
                     color = MnaColors.TextSecondary,
                     fontSize = 13.sp,
                     lineHeight = 19.sp
@@ -118,11 +136,23 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
 @Composable
 private fun InfoLine(label: String, value: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, color = MnaColors.TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1f))
-        Text(value, color = MnaColors.TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(
+            label,
+            color = MnaColors.TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            value,
+            color = MnaColors.TextPrimary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
