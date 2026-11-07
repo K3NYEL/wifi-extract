@@ -105,7 +105,10 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { grants ->
         val granted = grants[Manifest.permission.ACCESS_FINE_LOCATION] == true
-        if (granted) {
+        if (granted && !isLocationEnabled(context)) {
+            status = "Activa los servicios de ubicación del dispositivo para permitir el escaneo Wi-Fi."
+            scanning = false
+        } else if (granted) {
             connection = readWifiConnection(context)
             status = "Permisos concedidos. Iniciando escaneo…"
             scanning = true
@@ -116,7 +119,7 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                 loadScanResults()
             }
         } else {
-            status = "Se necesitan los permisos de ubicación y dispositivos Wi-Fi cercanos para leer redes detectadas."
+            status = "Se necesita el permiso de ubicación precisa para leer los resultados del escaneo Wi-Fi."
             scanning = false
         }
     }
