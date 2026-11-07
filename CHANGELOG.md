@@ -2,7 +2,15 @@
 
 All notable changes to Mobile Network Analyzer are documented here.
 
-## [0.2.0] - 2026-11-05
+## [0.1.7] - 2026-11-07
+- Adds a functional Wi-Fi scan screen using Android WifiManager and scan-result broadcasts.
+- Shows current Wi-Fi connection metrics through ConnectivityManager and NetworkCapabilities: SSID when permitted, RSSI, frequency, link speed, Wi-Fi standard and channel.
+- Lists nearby access points with BSSID, signal level, frequency, channel and advertised security capabilities.
+- Declares the runtime location permission required by Android Wi-Fi scan results and explains scan restrictions in the interface.
+- Distinguishes refreshed scan results from cached results when Android throttles or rejects a new scan.
+- Clarifies that standard Wi-Fi scanning is not raw 802.11 monitor-mode capture.
+
+## [0.1.6] - 2026-11-05
 - Adds Dashboard (Panel) home screen and streamlines bottom navigation (Dashboard, Overview, Diagnostics, Settings).
 - Moves Update Manager option directly into Settings.
 - Implements the MNA mockup in Compose: design tokens, rounded 12 dp buttons, borderless surfaces and shared components.
