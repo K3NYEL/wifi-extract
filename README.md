@@ -40,7 +40,7 @@ Open the repository root in Android Studio, sync Gradle and run the `app` config
 For a debug APK:
 
 ```bash
-./gradlew :app:assembleDebug
+gradle :app:assembleDebug
 ```
 
 Output: `app/build/outputs/apk/debug/app-debug.apk`.
