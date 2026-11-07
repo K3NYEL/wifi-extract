@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.ScanResult
@@ -73,12 +74,9 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
     var scanning by remember { mutableStateOf(false) }
 
     fun hasScanPermissions(): Boolean {
-        val fineLocation = ContextCompat.checkSelfPermission(
+        return ContextCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        return fineLocation
     }
 
     fun loadScanResults(fresh: Boolean? = null) {
@@ -126,8 +124,12 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
     fun requestOrScan() {
         connection = readWifiConnection(context)
         if (!hasScanPermissions()) {
-            val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-            permissionLauncher.launch(permissions.toTypedArray())
+            permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
+            return
+        }
+        if (!isLocationEnabled(context)) {
+            status = "Activa los servicios de ubicación del dispositivo para permitir el escaneo Wi-Fi."
+            scanning = false
             return
         }
         scanning = true
@@ -286,6 +288,13 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
             item { Spacer(Modifier.height(24.dp)) }
         }
     }
+}
+
+private fun isLocationEnabled(context: Context): Boolean {
+    val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    return if (Build.VERSION.SDK_INT >= 28) manager.isLocationEnabled
+    else manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+        manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
 }
 
 private fun readWifiConnection(context: Context): WifiConnectionSnapshot? {
