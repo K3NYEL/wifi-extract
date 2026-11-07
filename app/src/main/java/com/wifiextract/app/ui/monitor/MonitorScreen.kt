@@ -17,12 +17,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -171,11 +172,11 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         if (hasScanPermissions()) loadScanResults()
     }
 
-    Column(modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         ScreenHeader("Monitor Wi-Fi")
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
@@ -239,7 +240,7 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MnaColors.AccentButton,
-                            contentColor = MnaColors.TextPrimary
+                            contentColor = Color.White
                         )
                     ) {
                         Icon(Icons.Default.Wifi, contentDescription = null)
@@ -268,7 +269,7 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                result.wifiSsid?.toString()?.removeSurrounding("\"") ?: "<SSID desconocido>",
+                                getScanResultSsid(result),
                                 modifier = Modifier.weight(1f),
                                 color = MnaColors.TextPrimary,
                                 fontWeight = FontWeight.SemiBold,
@@ -314,7 +315,7 @@ private fun readWifiConnection(context: Context): WifiConnectionSnapshot? {
     } ?: return null
 
     val ssid = info.ssid
-        ?.takeUnless { it == WifiManager.UNKNOWN_SSID || it == "<unknown ssid>" }
+        ?.takeUnless { it == "<unknown ssid>" }
         ?.trim('"')
         ?: "SSID no disponible"
 
@@ -337,6 +338,16 @@ private fun readWifiConnection(context: Context): WifiConnectionSnapshot? {
         linkSpeed = info.linkSpeed,
         standard = standard
     )
+}
+
+private fun getScanResultSsid(result: ScanResult): String {
+    val ssid = if (Build.VERSION.SDK_INT >= 33) {
+        result.wifiSsid?.toString()?.removeSurrounding("\"")
+    } else {
+        @Suppress("DEPRECATION")
+        result.SSID?.removeSurrounding("\"")
+    }
+    return ssid?.takeIf { it.isNotBlank() && it != "<unknown ssid>" } ?: "<SSID desconocido>"
 }
 
 private fun frequencyToChannel(frequency: Int): Int = when (frequency) {
