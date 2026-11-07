@@ -268,7 +268,7 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                result.SSID.ifBlank { "(SSID oculto)" },
+                                result.wifiSsid?.toString()?.removeSurrounding("\"") ?: "<SSID desconocido>",
                                 modifier = Modifier.weight(1f),
                                 color = MnaColors.TextPrimary,
                                 fontWeight = FontWeight.SemiBold,
