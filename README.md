@@ -12,6 +12,7 @@ The six-screen HTML mockup supplied for this project is the product's visual and
 | Devices | Discover devices visible on the connected local network | Implemented: bounded /24 reachability sweep |
 | Diagnostics | Bounded, cancellable connectivity checks | Ping, DNS and TCP port implemented; traceroute coming soon |
 | Updates | Official GitHub Releases, APK signature and SHA-256 verification | Implemented; requires a published release with APK + `.sha256` |
+| Monitor Wi-Fi | Current connection metrics and nearby access-point scan results | Implemented with Android public Wi-Fi APIs; raw 802.11 monitor-mode capture is not exposed by standard Android APIs |
 | Settings | Preferences, privacy, permissions, licenses and scope/limits | Implemented (licenses inventory pending) |
 
 Unavailable capabilities are explicitly marked as coming soon. The app must not display simulated scan results as real data.
@@ -29,17 +30,17 @@ Unavailable capabilities are explicitly marked as coming soon. The app must not 
 ## Technology
 
 - Kotlin, Android Gradle Plugin and Jetpack Compose + Material 3
-- Android Connectivity APIs
-- JDK 17, Android SDK 35, minSdk 26, targetSdk 35
+- Android Connectivity APIs and WifiManager scan APIs
+- JDK 17, Gradle 9.8.2, compileSdk 37, minSdk 26, targetSdk 37
 
 ## Build
 
-Open the repository root in Android Studio, sync Gradle and run the `app` configuration on an Android device or emulator.
+Open the repository root in Android Studio, sync Gradle and run the `app` configuration on an Android device or emulator. The Wi-Fi scan requires the runtime location permission and enabled location services; Android may throttle scan requests.
 
 For a debug APK:
 
 ```bash
-gradle :app:assembleDebug
+./gradlew :app:assembleDebug
 ```
 
 Output: `app/build/outputs/apk/debug/app-debug.apk`.
