@@ -1,18 +1,18 @@
 # Privacy Policy — Mobile Network Analyzer
 
-**Last updated:** 2026-11-05 (v0.2.0)
+**Last updated:** 2026-11-07 (v0.1.7)
 
 Mobile Network Analyzer (MNA) is designed to inspect the local network connection on the Android device where it is installed.
 
 ## Information read by the app
 
-The current overview reads connection state, transport type, local IPv4 address, default gateway, DNS server addresses and network interface name when Android makes those values available.
+The overview reads connection state, transport type, local IPv4 address, default gateway, DNS server addresses and network interface name when Android makes those values available.
 
-Future discovery and diagnostic features may read additional local network information only when the user starts the relevant feature and grants any required Android permission. The app must explain that access before requesting it.
+When the user opens the Wi-Fi monitor and starts a scan, the app reads nearby access-point metadata exposed by Android: SSID, BSSID, signal level, frequency and advertised security capabilities. It also reads current Wi-Fi connection metrics such as RSSI, link speed and Wi-Fi standard when Android permits access. Android requires the app to hold the location permission and may require device location services to be enabled before returning scan results. These values are processed locally and are not used to derive or store the user's physical location.
 
 ## Where information goes
 
-The current app processes connection information locally on the device. It does not send IP addresses, MAC addresses, device names or scan results to project-owned servers. There are no identifying analytics or advertising SDKs.
+The app processes connection and Wi-Fi scan information locally on the device. It does not send IP addresses, MAC addresses, SSIDs, BSSIDs, device names or scan results to project-owned servers. There are no identifying analytics or advertising SDKs.
 
 The updater contacts the official project GitHub Releases source (api.github.com and github.com) to retrieve release metadata and installation files; GitHub may log your IP address. The check runs on start only if enabled in Settings, and can be disabled. The app verifies the published SHA-256 checksum and the APK signing certificate before offering the Android installation flow.
 
@@ -22,7 +22,7 @@ MNA should store only information needed to provide a requested feature. Diagnos
 
 ## Permissions
 
-The app declares Android network-state, Wi-Fi-state and Internet permissions, plus `REQUEST_INSTALL_PACKAGES`, used only to hand a verified update to the system installer. Any additional permission must be requested only when the related feature is used, with an explanation.
+The app declares network-state, Wi-Fi-state, Wi-Fi scan control and Internet permissions, plus `ACCESS_FINE_LOCATION`, requested at runtime only when the user starts Wi-Fi scanning. Android uses this permission to protect access to nearby Wi-Fi scan results; MNA does not collect GPS coordinates or transmit location data. `REQUEST_INSTALL_PACKAGES` is used only to hand a verified update to the system installer.
 
 ## Responsible use
 
