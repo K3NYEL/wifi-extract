@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -67,11 +67,11 @@ fun HomeScreen(
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     val info = (networkState as? NetworkUiState.Success)?.info
-    Column(modifier.fillMaxSize()) {
-        ScreenHeader("Inicio") {
+    Column(modifier = modifier.fillMaxSize()) {
+        ScreenHeader(stringResource(R.string.nav_home)) {
             if (info != null) {
-                if (info.connected) StatusChip("CONECTADO", MnaColors.Connected)
-                else StatusChip("SIN CONEXIÓN", MnaColors.Disconnected)
+                if (info.connected) StatusChip(stringResource(R.string.connected).uppercase(), MnaColors.Connected)
+                else StatusChip(stringResource(R.string.disconnected).uppercase(), MnaColors.Disconnected)
             }
         }
         Column(
@@ -82,10 +82,10 @@ fun HomeScreen(
                 MnaCard {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Eyebrow("ACTUALIZACIÓN DISPONIBLE")
+                            Eyebrow(stringResource(R.string.update_available_eyebrow))
                             Text(updateState.info.tag, color = MnaColors.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         }
-                        PrimaryButton("Ver", onOpenUpdates, Modifier.width(88.dp))
+                        PrimaryButton(stringResource(R.string.btn_view), onOpenUpdates, Modifier.width(88.dp))
                     }
                 }
             }
@@ -93,9 +93,9 @@ fun HomeScreen(
             when (networkState) {
                 NetworkUiState.Loading -> SkeletonCard(rows = 3)
                 is NetworkUiState.Error -> MnaCard {
-                    Eyebrow("ERROR DE LECTURA")
-                    Text(networkState.message, color = MnaColors.TextPrimary, fontSize = 14.sp, lineHeight = 20.sp)
-                    SecondaryButton("Reintentar", onRefresh, Modifier.fillMaxWidth())
+                    Eyebrow(stringResource(R.string.error_generic))
+                    Text(networkState.message.asString(), color = MnaColors.TextPrimary, fontSize = 14.sp, lineHeight = 20.sp)
+                    SecondaryButton(stringResource(R.string.btn_retry), onRefresh, Modifier.fillMaxWidth())
                 }
                 is NetworkUiState.Success -> MnaCard {
                     Text(info!!.transport, color = MnaColors.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
@@ -108,9 +108,9 @@ fun HomeScreen(
                         fontFamily = FontFamily.Monospace
                     )
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        SecondaryButton("Actualizar", onRefresh, Modifier.weight(1f))
+                        SecondaryButton(stringResource(R.string.refresh), onRefresh, Modifier.weight(1f))
                         SecondaryButton(
-                            "Compartir",
+                            stringResource(R.string.btn_share),
                             {
                                 val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, report(info))
                                 context.startActivity(Intent.createChooser(send, null))
@@ -123,27 +123,27 @@ fun HomeScreen(
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                MetricTile("Dispositivos", "$deviceCount", Modifier.weight(1f))
-                MetricTile("Interfaz", info?.interfaceName ?: "—", Modifier.weight(1f))
-                MetricTile("Prefijo", info?.takeIf { it.prefixLength > 0 }?.let { "/${it.prefixLength}" } ?: "—", Modifier.weight(1f))
+                MetricTile(stringResource(R.string.metric_devices), "$deviceCount", Modifier.weight(1f))
+                MetricTile(stringResource(R.string.metric_interface), info?.interfaceName ?: "—", Modifier.weight(1f))
+                MetricTile(stringResource(R.string.metric_prefix), info?.takeIf { it.prefixLength > 0 }?.let { "/${it.prefixLength}" } ?: "—", Modifier.weight(1f))
             }
 
-            SectionLabel("Acciones")
+            SectionLabel(stringResource(R.string.section_actions))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                ActionTile("Escanear red", Icons.Default.Search, onScan, Modifier.weight(1f), primary = true)
+                ActionTile(stringResource(R.string.action_scan), Icons.Default.Search, onScan, Modifier.weight(1f), primary = true)
                 ActionTile("Ping", Icons.Default.NetworkCheck, onOpenTools, Modifier.weight(1f))
-                ActionTile("Wi-Fi cercanas", Icons.Default.Wifi, onOpenWifi, Modifier.weight(1f))
+                ActionTile(stringResource(R.string.action_nearby_wifi), Icons.Default.Wifi, onOpenWifi, Modifier.weight(1f))
             }
 
             if (info != null) {
-                SectionLabel("Conexión")
+                SectionLabel(stringResource(R.string.section_connection))
                 MnaCard {
                     val copy = { v: String -> clipboard.setText(AnnotatedString(v)) }
-                    CopyRow("IPv4 local", info.localAddress, copy)
-                    CopyRow("Máscara", maskLabel(info), copy)
-                    CopyRow("Puerta de enlace", info.gateway, copy)
-                    CopyRow("DNS", info.dnsServers, copy)
-                    CopyRow("Interfaz", info.interfaceName, copy)
+                    CopyRow(stringResource(R.string.lbl_local_ipv4), info.localAddress, copy)
+                    CopyRow(stringResource(R.string.lbl_subnet_mask), maskLabel(info), copy)
+                    CopyRow(stringResource(R.string.lbl_gateway), info.gateway, copy)
+                    CopyRow(stringResource(R.string.lbl_dns), info.dnsServers, copy)
+                    CopyRow(stringResource(R.string.lbl_interface), info.interfaceName, copy)
                 }
             }
 
@@ -156,7 +156,7 @@ fun HomeScreen(
 @Composable
 private fun CopyRow(label: String, value: String, onCopy: (String) -> Unit) {
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable(role = Role.Button, onClickLabel = "Copiar $label") { onCopy(value) },
+        Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable(role = Role.Button, onClickLabel = "$label: $value") { onCopy(value) },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -170,11 +170,11 @@ private fun maskLabel(info: NetworkInfo): String =
     if (info.prefixLength > 0) "${info.subnetMask} (/${info.prefixLength})" else info.subnetMask
 
 private fun report(info: NetworkInfo): String = buildString {
-    appendLine("Mobile Network Analyzer — informe de red")
-    appendLine("Tipo: ${info.transport}")
-    appendLine("IPv4 local: ${info.localAddress}")
-    appendLine("Máscara: ${maskLabel(info)}")
-    appendLine("Puerta de enlace: ${info.gateway}")
+    appendLine("Mobile Network Analyzer — report")
+    appendLine("Type: ${info.transport}")
+    appendLine("Local IPv4: ${info.localAddress}")
+    appendLine("Mask: ${maskLabel(info)}")
+    appendLine("Gateway: ${info.gateway}")
     appendLine("DNS: ${info.dnsServers}")
-    append("Interfaz: ${info.interfaceName}")
+    append("Interface: ${info.interfaceName}")
 }

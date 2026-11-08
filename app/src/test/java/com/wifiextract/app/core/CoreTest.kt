@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Locale
 
 class ValidationTest {
     @Test fun acceptsIpv4AndHostnames() {
@@ -60,5 +61,21 @@ class SubnetTest {
     @Test fun formatsMask() {
         assertEquals("255.255.255.0", Subnet.maskString(24))
         assertEquals("255.255.240.0", Subnet.maskString(20))
+    }
+}
+
+class FormattersTest {
+    @Test fun formatsBytesCorrectly() {
+        assertEquals("500 B", Formatters.formatBytes(500, Locale.US))
+        assertEquals("1.5 KB", Formatters.formatBytes(1536, Locale.US))
+        assertEquals("10 MB", Formatters.formatBytes(10 * 1024 * 1024, Locale.US))
+    }
+
+    @Test fun formatsDistanceCorrectly() {
+        assertEquals("3.45 m", Formatters.formatDistanceMeters(3.45, Locale.US))
+    }
+
+    @Test fun formatsPercentCorrectly() {
+        assertEquals("85%", Formatters.formatPercent(85, Locale.US))
     }
 }

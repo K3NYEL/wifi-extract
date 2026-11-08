@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.wifiextract.app.NetworkInfoRepository
+import com.wifiextract.app.R
 import com.wifiextract.app.core.Subnet
+import com.wifiextract.app.core.UiText
 import com.wifiextract.app.data.Device
 import com.wifiextract.app.data.DiscoveryRepository
 import com.wifiextract.app.data.ScanEvent
@@ -28,7 +30,7 @@ data class DevicesState(
     val ownIp: String = "",
     val gateway: String = "",
     val devices: List<Device> = emptyList(),
-    val message: String? = null,
+    val message: UiText? = null,
     val keepScreenOn: Boolean = false
 )
 
@@ -48,7 +50,7 @@ class DevicesViewModel(application: Application) : AndroidViewModel(application)
                 (info.transport == "Wi-Fi" || info.transport == "Ethernet")
             if (info == null || !allowed) {
                 _state.update {
-                    it.copy(hasScanned = true, message = "Conéctate a una red Wi-Fi o Ethernet para buscar dispositivos.")
+                    it.copy(hasScanned = true, message = UiText.Res(R.string.devices_connect_required))
                 }
                 return@launch
             }
@@ -71,7 +73,7 @@ class DevicesViewModel(application: Application) : AndroidViewModel(application)
                         }
                     }
                 }
-                _state.update { it.copy(message = if (it.devices.isEmpty()) "Ningún dispositivo respondió." else null) }
+                _state.update { it.copy(message = if (it.devices.isEmpty()) UiText.Res(R.string.devices_none_found) else null) }
             } finally {
                 _state.update { it.copy(scanning = false) }
             }
@@ -80,7 +82,7 @@ class DevicesViewModel(application: Application) : AndroidViewModel(application)
 
     fun stopScan() {
         if (job?.isActive != true) return
-        _state.update { it.copy(message = "Escaneo detenido. Resultados parciales.") }
+        _state.update { it.copy(message = UiText.Res(R.string.devices_scan_stopped)) }
         job?.cancel()
     }
 }

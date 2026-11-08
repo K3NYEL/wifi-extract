@@ -18,15 +18,17 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wifiextract.app.R
 import com.wifiextract.app.data.Device
-import com.wifiextract.app.ui.components.MnaCard
 import com.wifiextract.app.ui.components.Eyebrow
+import com.wifiextract.app.ui.components.MnaCard
 import com.wifiextract.app.ui.components.Note
 import com.wifiextract.app.ui.components.PrimaryButton
-import com.wifiextract.app.ui.components.ScreenHeader
 import com.wifiextract.app.ui.components.SecondaryButton
 import com.wifiextract.app.ui.components.SkeletonListRow
 import com.wifiextract.app.ui.theme.MnaColors
@@ -46,15 +48,15 @@ fun DevicesScreen(
         onDispose { view.keepScreenOn = false }
     }
 
-    Column(modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    PrimaryButton("Escanear red", onScan, Modifier.weight(1f), enabled = !state.scanning)
-                    SecondaryButton("Detener", onStop, Modifier.weight(1f), enabled = state.scanning)
+                    PrimaryButton(stringResource(R.string.action_scan), onScan, Modifier.weight(1f), enabled = !state.scanning)
+                    SecondaryButton(stringResource(R.string.btn_stop), onStop, Modifier.weight(1f), enabled = state.scanning)
                 }
             }
             if (state.hasScanned && state.total > 0) {
@@ -63,7 +65,7 @@ fun DevicesScreen(
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Eyebrow(state.subnetLabel)
                             Text(
-                                "${state.devices.size} encontrados · ${state.scanned}/${state.total}",
+                                pluralStringResource(R.plurals.devices_found_count, state.devices.size, state.devices.size, state.scanned, state.total),
                                 color = MnaColors.TextSecondary,
                                 fontSize = 12.sp,
                                 fontFamily = FontFamily.Monospace
@@ -81,7 +83,7 @@ fun DevicesScreen(
                 }
             }
             if (state.ownIp.isNotBlank()) {
-                item { DeviceRow(state.ownIp, "Este dispositivo", null) }
+                item { DeviceRow(state.ownIp, stringResource(R.string.this_device), null) }
             }
             items(state.devices, key = { it.ip }) { device ->
                 DeviceRow(device.ip, detail(device, state.gateway), { onPing(device.ip) })
@@ -92,14 +94,14 @@ fun DevicesScreen(
             if (!state.hasScanned) {
                 item {
                     MnaCard {
-                        Eyebrow("SIN RESULTADOS")
-                        Note("Todavía no hay resultados. Pulsa «Escanear red» para buscar dispositivos en tu red local.")
+                        Eyebrow(stringResource(R.string.empty_state).uppercase())
+                        Note(stringResource(R.string.devices_scan_prompt))
                     }
                 }
             }
-            state.message?.let { message -> item { MnaCard { Note(message) } } }
+            state.message?.let { message -> item { MnaCard { Note(message.asString()) } } }
             item {
-                Note("Por restricciones de Android 10+, la dirección MAC y el fabricante pueden no estar disponibles. Un dispositivo que no responde no implica que no exista. Usa el escaneo solo en redes propias o con permiso.")
+                Note(stringResource(R.string.devices_permission_notice))
             }
             item {
                 Spacer(Modifier.height(28.dp))
@@ -108,9 +110,10 @@ fun DevicesScreen(
     }
 }
 
+@Composable
 private fun detail(device: Device, gateway: String): String = listOfNotNull(
     device.hostName,
-    if (device.ip == gateway) "Puerta de enlace" else null,
+    if (device.ip == gateway) stringResource(R.string.gateway_label) else null,
     "${device.latencyMs} ms"
 ).joinToString(" · ")
 

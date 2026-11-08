@@ -23,8 +23,12 @@ class SettingsRepository(context: Context) {
         set(value) = prefs.edit().putInt(KEY_TIMEOUT, value).apply()
 
     var theme: String
-        get() = prefs.getString(KEY_THEME, "dark") ?: "dark"
+        get() = prefs.getString(KEY_THEME, "system") ?: "system"
         set(value) = prefs.edit().putString(KEY_THEME, value).apply()
+
+    var language: String
+        get() = prefs.getString(KEY_LANGUAGE, "system") ?: "system"
+        set(value) = prefs.edit().putString(KEY_LANGUAGE, value).apply()
 
     companion object {
         val TIMEOUT_OPTIONS = listOf(500, 1000, 2000)
@@ -33,5 +37,6 @@ class SettingsRepository(context: Context) {
         private const val KEY_SCREEN = "keep_screen_on"
         private const val KEY_TIMEOUT = "timeout_ms"
         private const val KEY_THEME = "app_theme"
+        private const val KEY_LANGUAGE = "app_language"
     }
 }
