@@ -137,6 +137,13 @@ fun SettingsScreen(
 
             SectionLabel(stringResource(R.string.section_about))
             MnaCardRow {
+                AboutRow(stringResource(R.string.about_contributors)) {
+                    GithubContributors(
+                        owner = "K3NYEL",
+                        repository = "wifi-extract",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
                 AboutRow(stringResource(R.string.about_privacy)) {
                     Note("Los datos de conexión se leen localmente y no se envían a servidores del proyecto. La comprobación de actualizaciones contacta con GitHub (api.github.com), que puede registrar tu dirección IP.")
                     Note("Estado de red, estado Wi-Fi e Internet. «Instalar apps desconocidas» solo se solicita al instalar una actualización verificada. No se piden ubicación ni contactos.")
