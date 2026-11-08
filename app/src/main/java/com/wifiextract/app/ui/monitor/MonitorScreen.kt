@@ -182,22 +182,6 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    fun requestRanging(result: ScanResult) {
-        if (Build.VERSION.SDK_INT >= 33) {
-            val permission = Manifest.permission.NEARBY_WIFI_DEVICES
-            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                pendingRanging = result
-                rttPermissionLauncher.launch(arrayOf(permission))
-                return
-            }
-        } else if (!hasScanPermissions()) {
-            pendingRanging = result
-            rttPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
-            return
-        }
-        performRanging(result)
-    }
-
     val rttPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { grants ->
@@ -212,6 +196,22 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         else if (target != null) {
             rangingResults = rangingResults + (target.BSSID to "Permiso cercano denegado; no se inició RTT.")
         }
+    }
+
+    fun requestRanging(result: ScanResult) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            val permission = Manifest.permission.NEARBY_WIFI_DEVICES
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                pendingRanging = result
+                rttPermissionLauncher.launch(arrayOf(permission))
+                return
+            }
+        } else if (!hasScanPermissions()) {
+            pendingRanging = result
+            rttPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
+            return
+        }
+        performRanging(result)
     }
 
     fun requestOrScan() {
