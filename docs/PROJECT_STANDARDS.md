@@ -115,9 +115,9 @@ Un único acento visual. No añadir colores decorativos.
 - Si las fuentes no están empaquetadas, definir una estrategia de fallback coherente y con licencias verificadas.
 
 ### Forma y espacio
-- Esquinas consistentes de 2–4 dp.
+- Tarjetas con esquinas de 16 dp; botones con esquinas de 12 dp; chips con forma Pill totalmente redondeada.
 - Rejilla de 4/8 dp para márgenes, rellenos y separaciones.
-- Bordes de 1 dp. Sin sombras pesadas; la jerarquía se expresa mediante superficies.
+- No usar bordes grises para separar filas; expresar la jerarquía mediante espacio y superficies. Sin sombras pesadas.
 
 ### Iconografía y componentes
 - Un solo conjunto de iconos, con trazo y rejilla coherentes de 24 dp.

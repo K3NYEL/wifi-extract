@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+- Adds the Android 13+ `NEARBY_WIFI_DEVICES` permission while retaining precise location permission for Wi-Fi scan results and AP ranging.
+- Adds Wi-Fi RTT distance measurements for compatible access points, including Android 15 IEEE 802.11az responder detection when the device reports NTB initiator support.
+- Adds Wi-Fi Network Request using `WifiNetworkSpecifier`, with SSID/BSSID filters and optional WPA2 credentials through Android's system approval dialog.
+- Documents that these APIs do not provide raw 802.11 MAC-frame capture or monitor mode.
+
 All notable changes to Mobile Network Analyzer are documented here.
 
 ## [0.1.7] - 2026-11-07
