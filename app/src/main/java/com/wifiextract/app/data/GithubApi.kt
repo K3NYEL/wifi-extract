@@ -78,3 +78,47 @@ suspend fun fetchGithubUser(username: String): Result<GithubUser> {
         }
     }
 }
+
+
+suspend fun fetchGithubContributors(owner: String, repository: String): Result<List<String>> {
+    if (!owner.matches(Regex("[A-Za-z0-9-]{1,39}")) ||
+        !repository.matches(Regex("[A-Za-z0-9_.-]{1,100}"))
+    ) {
+        return Result.failure(IllegalArgumentException("Invalid GitHub repository"))
+    }
+
+    return withContext(Dispatchers.IO) {
+        var connection: HttpURLConnection? = null
+        try {
+            connection = (URL("https://api.github.com/repos/$owner/$repository/contributors?per_page=20")
+                .openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 5_000
+                readTimeout = 5_000
+                setRequestProperty("Accept", "application/vnd.github+json")
+                setRequestProperty("User-Agent", "Mobile-Network-Analyzer")
+            }
+
+            val responseCode = connection.responseCode
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw IllegalStateException("GitHub API returned HTTP $responseCode")
+            }
+
+            val json = org.json.JSONArray(connection.inputStream.bufferedReader().use { it.readText() })
+            val usernames = buildList {
+                for (index in 0 until json.length()) {
+                    val login = json.optJSONObject(index)?.optString("login").orEmpty()
+                    if (login.isNotBlank() && !login.endsWith("[bot]")) add(login)
+                }
+            }.distinct()
+
+            Result.success(usernames)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Result.failure(error)
+        } finally {
+            connection?.disconnect()
+        }
+    }
+}
