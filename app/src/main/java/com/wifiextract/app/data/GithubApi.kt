@@ -1,5 +1,6 @@
 package com.wifiextract.app.data
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -26,33 +27,54 @@ private fun JSONObject.stringOrNull(key: String): String? =
     if (isNull(key)) null else optString(key).takeIf { it.isNotBlank() }
 
 suspend fun fetchGithubUser(username: String): Result<GithubUser> {
-    cache[username]?.let { return Result.success(it) }
-    return withContext(Dispatchers.IO) {
-        runCatching {
-            val conn = URL("https://api.github.com/users/$username").openConnection() as HttpURLConnection
-            try {
-                conn.setRequestProperty("Accept", "application/vnd.github+json")
-                conn.connectTimeout = 8000
-                conn.readTimeout = 8000
-                if (conn.responseCode != 200) error("HTTP ${conn.responseCode}")
+    val normalizedUsername = username.trim()
+    if (!normalizedUsername.matches(Regex("[A-Za-z0-9-]{1,39}"))) {
+        return Result.failure(IllegalArgumentException("Invalid GitHub username"))
+    }
 
-                val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-                val login = json.getString("login")
-                GithubUser(
-                    login = login,
-                    name = json.stringOrNull("name") ?: login,
-                    avatarUrl = json.getString("avatar_url"),
-                    htmlUrl = json.getString("html_url"),
-                    bio = json.stringOrNull("bio"),
-                    location = json.stringOrNull("location"),
-                    company = json.stringOrNull("company"),
-                    publicRepos = json.optInt("public_repos"),
-                    followers = json.optInt("followers"),
-                    following = json.optInt("following")
-                )
-            } finally {
-                conn.disconnect()
+    cache[normalizedUsername.lowercase()]?.let { return Result.success(it) }
+
+    return withContext(Dispatchers.IO) {
+        var connection: HttpURLConnection? = null
+        try {
+            connection = (URL("https://api.github.com/users/$normalizedUsername")
+                .openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 5_000
+                readTimeout = 5_000
+                setRequestProperty("Accept", "application/vnd.github+json")
+                setRequestProperty("User-Agent", "Mobile-Network-Analyzer")
             }
-        }.onSuccess { cache[username] = it }
+
+            val responseCode = connection.responseCode
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw IllegalStateException("GitHub API returned HTTP $responseCode")
+            }
+
+            val json = connection.inputStream.bufferedReader().use { reader ->
+                JSONObject(reader.readText())
+            }
+            val login = json.getString("login")
+            val user = GithubUser(
+                login = login,
+                name = json.stringOrNull("name") ?: login,
+                avatarUrl = json.getString("avatar_url"),
+                htmlUrl = json.getString("html_url"),
+                bio = json.stringOrNull("bio"),
+                location = json.stringOrNull("location"),
+                company = json.stringOrNull("company"),
+                publicRepos = json.optInt("public_repos"),
+                followers = json.optInt("followers"),
+                following = json.optInt("following")
+            )
+            cache[normalizedUsername.lowercase()] = user
+            Result.success(user)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Result.failure(error)
+        } finally {
+            connection?.disconnect()
+        }
     }
 }
