@@ -26,6 +26,7 @@
     <string name="settings_updates_title">Actualizaciones</string>
     <string name="settings_updates_desc">Comprobar nuevas versiones y notas de cambios</string>
     <string name="settings_language_title">Idioma</string>
+    <string name="language_changing">Cambiando idioma…</string>
     <string name="lang_system">Sistema</string>
     <string name="lang_spanish">Español</string>
     <string name="lang_english">English</string>
