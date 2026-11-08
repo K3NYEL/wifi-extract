@@ -38,8 +38,7 @@ import androidx.compose.ui.unit.sp
 import com.wifiextract.app.R
 import com.wifiextract.app.data.SettingsRepository
 import com.wifiextract.app.ui.components.Eyebrow
-import com.wifiextract.app.ui.components.GithubProfileCard
-import com.wifiextract.app.ui.components.GithubProfileCard
+import com.wifiextract.app.ui.components.PrimaryButton
 import com.wifiextract.app.ui.components.InfoRow
 import com.wifiextract.app.ui.components.MnaCard
 import com.wifiextract.app.ui.components.Note
@@ -76,13 +75,19 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            MnaCard() {
-                MnaCardRow {
-                    GithubProfileCard(
-                        username = "K3NYEL",
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    )
-                }
+            MnaCard {
+                Text("Kenyel", color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Text("@K3NYEL", color = MnaColors.TextSecondary, fontSize = 13.sp)
+                Note("Desarrollador de Mobile Network Analyzer")
+                PrimaryButton(
+                    text = stringResource(R.string.view_on_github),
+                    onClick = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/K3NYEL"))
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             MnaCardRow {
