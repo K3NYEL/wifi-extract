@@ -1,14 +1,17 @@
 # Changelog
 
-## [1.0.0] - 2026-11-08 (First Stable Release)
-- **First Stable Version (v1.0.0, versionCode 10):** Official stable release of Mobile Network Analyzer (MNA).
-- **Internationalization (i18n):** Complete English & Spanish localization with automatic system locale detection (`locales_config.xml`), `UiText` architecture, locale-aware `Formatters`, and in-app language switcher in Settings (System, Spanish, English).
-- **System Theme Detection:** Adds automatic system theme detection ("Sistema") alongside Dark and Light modes in Settings (`Apariencia`).
-- **In-App Log Console:** Implements `MnaLogger` and a dedicated `Consola` viewer tab in `Herramientas` to inspect real-time log events, network actions, diagnostics, and errors with clear/copy capabilities.
-- **Licenses & Attribution:** Adds full open-source third-party license attribution (Apache 2.0 / MIT) under `Acerca de -> Licencias`.
-- Adds the Android 13+ `NEARBY_WIFI_DEVICES` permission while retaining precise location permission for Wi-Fi scan results and AP ranging.
-- Redesigns navigation into four tabs: Inicio, Red, Herramientas and Ajustes.
-- Update Manager with GitHub Releases, SHA-256 and APK signature verification.
+## [0.1.10] - 2026-11-08 (Stable Release)
+- Adds animated transitions between the main app sections with subtle fade and horizontal movement.
+- Animates the selected bottom-navigation icon with a restrained scale effect.
+- Adds animated transitions between device discovery and nearby Wi-Fi network tabs.
+- Adds smooth expand and collapse animations to the expandable sections in Settings.
+- Fixes missing English localization strings required by the build.
+- Refines the launcher icon while preserving the app's red-and-graphite visual identity.
+- Preserves the language-change loading state and avoids changing the network scanning and diagnostics logic.
+
+## [0.1.9] - 2026-11-08
+- Redesigns the MNA interface and navigation.
+- Adds Android Wi-Fi connectivity APIs and nearby network information.
 
 ## [0.1.7] - 2026-11-07
 - Adds a functional Wi-Fi scan screen using Android WifiManager and scan-result broadcasts.
