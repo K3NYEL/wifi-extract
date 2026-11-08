@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -65,7 +66,7 @@ import androidx.compose.ui.unit.sp
 import com.wifiextract.app.ui.theme.MnaColors
 import com.wifiextract.app.ui.theme.MnaShapes
 import androidx.compose.runtime.produceState
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage as CoilAsyncImage
 import com.wifiextract.app.data.GithubUser
 import com.wifiextract.app.data.fetchGithubUser
 
@@ -122,12 +123,22 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = user.avatarUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(64.dp).clip(CircleShape)
-                )
+                Box(
+                    modifier = Modifier.size(64.dp).clip(CircleShape).background(MnaColors.SurfaceRaised),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        user.login.take(1).uppercase(),
+                        color = MnaColors.TextSecondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    CoilAsyncImage(
+                        model = user.avatarUrl,
+                        contentDescription = "Avatar de @${user.login}",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(user.name, color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Text("@${user.login}", color = MnaColors.TextSecondary, fontSize = 13.sp)
@@ -161,16 +172,6 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
             )
         }
     }
-}
-
-@Composable
-fun AsyncImage(
-    model: String,
-    contentDescription: Nothing?,
-    contentScale: ContentScale,
-    modifier: Modifier
-) {
-    TODO("Not yet implemented")
 }
 
 @Composable
