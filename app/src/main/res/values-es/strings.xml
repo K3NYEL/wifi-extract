@@ -96,6 +96,9 @@
     <string name="about_contact">Contacto y GitHub</string>
     <string name="about_contact_desc">contacto con el desarrollador (K3NYEL):</string>
     <string name="btn_go_github">Ir a GitHub</string>
+    <string name="about_contributors">Contribuyentes y desarrolladores</string>
+    <string name="github_contributors_unavailable">No se pudieron cargar los perfiles de GitHub. Comprueba tu conexión.</string>
+    <string name="github_contributors_empty">Todavía no hay contribuyentes públicos registrados.</string>
     <string name="about_privacy">Privacidad y permisos</string>
     <string name="about_scope">Alcance y límites</string>
     <string name="about_licenses">Licencias</string>
