@@ -70,12 +70,10 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            MnaCard {
-                GithubProfileCard(
-                    username = "K3NYEL",
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            GithubProfileCard(
+                username = "K3NYEL",
+                modifier = Modifier.fillMaxWidth()
+            )
 
             MnaCardRow {
                 SettingsRow(
