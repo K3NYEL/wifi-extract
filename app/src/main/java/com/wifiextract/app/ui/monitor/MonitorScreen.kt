@@ -12,7 +12,13 @@ import android.net.NetworkCapabilities
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
+import android.net.wifi.rtt.RangingRequest
+import android.net.wifi.rtt.RangingResult
+import android.net.wifi.rtt.RangingResultCallback
+import android.net.wifi.rtt.WifiRttManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +36,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,6 +80,11 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
     var connection by remember { mutableStateOf(readWifiConnection(context)) }
     var status by remember { mutableStateOf("Pulsa «Escanear redes» para iniciar una búsqueda.") }
     var scanning by remember { mutableStateOf(false) }
+    var rangingResults by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var pendingRanging by remember { mutableStateOf<ScanResult?>(null) }
+    val rttManager = remember {
+        context.getSystemService(Context.WIFI_RTT_RANGING_SERVICE) as? WifiRttManager
+    }
 
     fun hasScanPermissions(): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -122,6 +134,83 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         } else {
             status = "Se necesita el permiso de ubicación precisa para leer los resultados del escaneo Wi-Fi."
             scanning = false
+        }
+    }
+
+
+    fun performRanging(result: ScanResult) {
+        if (Build.VERSION.SDK_INT < 28 ||
+            !context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_RTT) ||
+            rttManager == null
+        ) {
+            rangingResults = rangingResults + (result.BSSID to "Este dispositivo no admite Wi-Fi RTT.")
+            return
+        }
+        if (!isLocationEnabled(context)) {
+            rangingResults = rangingResults + (result.BSSID to "Activa los servicios de ubicación para medir distancia.")
+            return
+        }
+        if (!rttManager.isAvailable) {
+            rangingResults = rangingResults + (result.BSSID to "Wi-Fi RTT no está disponible en este momento.")
+            return
+        }
+        rangingResults = rangingResults + (result.BSSID to "Midiendo…")
+        runCatching {
+            val request = RangingRequest.Builder()
+                .addAccessPoint(result)
+                .build()
+            val callback = object : RangingResultCallback() {
+                override fun onRangingFailure(code: Int) {
+                    rangingResults = rangingResults + (result.BSSID to "La medición falló (código $code).")
+                }
+
+                override fun onRangingResults(results: List<RangingResult>) {
+                    val measurement = results.firstOrNull {
+                        it.status == RangingResult.STATUS_SUCCESS
+                    }
+                    val label = if (measurement != null) {
+                        String.format(java.util.Locale.getDefault(), "%.2f m", measurement.distanceMm / 1000.0)
+                    } else {
+                        "El punto de acceso no respondió a RTT."
+                    }
+                    rangingResults = rangingResults + (result.BSSID to label)
+                }
+            }
+            rttManager.startRanging(request, callback, Handler(Looper.getMainLooper()))
+        }.onFailure {
+            rangingResults = rangingResults + (result.BSSID to "No se pudo iniciar RTT: ${it.message ?: "error del sistema"}.")
+        }
+    }
+
+    fun requestRanging(result: ScanResult) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            val permission = Manifest.permission.NEARBY_WIFI_DEVICES
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                pendingRanging = result
+                rttPermissionLauncher.launch(arrayOf(permission))
+                return
+            }
+        } else if (!hasScanPermissions()) {
+            pendingRanging = result
+            rttPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
+            return
+        }
+        performRanging(result)
+    }
+
+    val rttPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        val allowed = if (Build.VERSION.SDK_INT >= 33) {
+            grants[Manifest.permission.NEARBY_WIFI_DEVICES] == true
+        } else {
+            grants[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        }
+        val target = pendingRanging
+        pendingRanging = null
+        if (allowed && target != null) performRanging(target)
+        else if (target != null) {
+            rangingResults = rangingResults + (target.BSSID to "Permiso cercano denegado; no se inició RTT.")
         }
     }
 
@@ -286,6 +375,21 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                         InfoRow("Frecuencia", "${result.frequency} MHz")
                         InfoRow("Seguridad", securityLabel(result.capabilities))
                         InfoRow("BSSID", result.BSSID)
+                        if (Build.VERSION.SDK_INT >= 28 && result.is80211mcResponder &&
+                            context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_RTT)
+                        ) {
+                            OutlinedButton(
+                                onClick = { requestRanging(result) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Medir distancia (Wi-Fi RTT)")
+                            }
+                            rangingResults[result.BSSID]?.let { measurement ->
+                                InfoRow("Distancia RTT", measurement)
+                            }
+                        } else if (Build.VERSION.SDK_INT >= 28) {
+                            InfoRow("Wi-Fi RTT", "Punto de acceso sin soporte FTM o dispositivo no compatible")
+                        }
                     }
                 }
             }
