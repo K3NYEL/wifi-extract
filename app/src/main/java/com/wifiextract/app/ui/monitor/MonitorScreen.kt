@@ -9,9 +9,13 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.Network
+import android.net.MacAddress
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
+import android.net.wifi.WifiNetworkSpecifier
 import android.net.wifi.rtt.RangingRequest
 import android.net.wifi.rtt.RangingResult
 import android.net.wifi.rtt.RangingResultCallback
@@ -37,6 +41,7 @@ import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -82,6 +88,15 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
     var scanning by remember { mutableStateOf(false) }
     var rangingResults by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var pendingRanging by remember { mutableStateOf<ScanResult?>(null) }
+    var networkSsid by remember { mutableStateOf("") }
+    var networkBssid by remember { mutableStateOf("") }
+    var networkPassword by remember { mutableStateOf("") }
+    var networkStatus by remember { mutableStateOf("Solicita una conexión a una red cercana mediante el diálogo del sistema.") }
+    var networkRequestPending by remember { mutableStateOf(false) }
+    var activeNetworkCallback by remember { mutableStateOf<ConnectivityManager.NetworkCallback?>(null) }
+    val connectivityManager = remember {
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
     val rttManager = remember {
         context.getSystemService(Context.WIFI_RTT_RANGING_SERVICE) as? WifiRttManager
     }
@@ -198,6 +213,60 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         }
     }
 
+    val networkPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) networkRequestPending = true
+        else networkStatus = "Permiso de dispositivos Wi-Fi cercanos denegado."
+    }
+
+    fun requestSpecificNetwork() {
+        if (Build.VERSION.SDK_INT < 29) {
+            networkStatus = "WifiNetworkSpecifier requiere Android 10 (API 29) o superior."
+            return
+        }
+        val ssid = networkSsid.trim()
+        if (ssid.isEmpty()) {
+            networkStatus = "Escribe el SSID de la red."
+            return
+        }
+        if (activeNetworkCallback != null) {
+            networkStatus = "Ya existe una solicitud de conexión activa. Cancélala antes de iniciar otra."
+            return
+        }
+        runCatching {
+            val specifierBuilder = WifiNetworkSpecifier.Builder().setSsid(ssid)
+            if (networkBssid.isNotBlank()) {
+                specifierBuilder.setBssid(MacAddress.fromString(networkBssid.trim()))
+            }
+            if (networkPassword.isNotBlank()) {
+                specifierBuilder.setWpa2Passphrase(networkPassword)
+            }
+            val request = NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .setNetworkSpecifier(specifierBuilder.build())
+                .build()
+            val callback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    networkStatus = "Conexión local disponible para WiFi Extract. Android mantiene el control de la conexión."
+                }
+                override fun onUnavailable() {
+                    networkStatus = "La solicitud no se completó o fue cancelada."
+                    activeNetworkCallback = null
+                }
+                override fun onLost(network: Network) {
+                    networkStatus = "La conexión solicitada se perdió."
+                    activeNetworkCallback = null
+                }
+            }
+            connectivityManager.requestNetwork(request, callback)
+            activeNetworkCallback = callback
+            networkStatus = "Solicitud enviada. Confirma la conexión en el diálogo de Android."
+        }.onFailure {
+            networkStatus = "No se pudo solicitar la conexión: ${it.message ?: "error del sistema"}"
+        }
+    }
+
     fun requestRanging(result: ScanResult) {
         if (Build.VERSION.SDK_INT >= 33) {
             val permission = Manifest.permission.NEARBY_WIFI_DEVICES
@@ -253,6 +322,21 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         }
         onDispose {
             runCatching { context.unregisterReceiver(receiver) }
+        }
+    }
+
+    LaunchedEffect(networkRequestPending) {
+        if (networkRequestPending) {
+            networkRequestPending = false
+            requestSpecificNetwork()
+        }
+    }
+
+    DisposableEffect(connectivityManager) {
+        onDispose {
+            activeNetworkCallback?.let { callback ->
+                runCatching { connectivityManager.unregisterNetworkCallback(callback) }
+            }
         }
     }
 
@@ -336,6 +420,61 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                         Text("Escanear redes")
                     }
                     Text(status, color = MnaColors.TextSecondary, fontSize = 12.sp)
+                }
+            }
+
+            item {
+                MnaCard {
+                    Eyebrow("CONEXIÓN A RED ESPECÍFICA")
+                    Note("Solicita conexión mediante la API oficial de Android. El sistema mostrará su propio diálogo de confirmación.")
+                    OutlinedTextField(
+                        value = networkSsid,
+                        onValueChange = { networkSsid = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("SSID") },
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = networkBssid,
+                        onValueChange = { networkBssid = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("BSSID (opcional)") },
+                        singleLine = true,
+                        placeholder = { Text("AA:BB:CC:DD:EE:FF") }
+                    )
+                    OutlinedTextField(
+                        value = networkPassword,
+                        onValueChange = { networkPassword = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Contraseña WPA2 (opcional)") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation()
+                    )
+                    Button(
+                        onClick = {
+                            if (Build.VERSION.SDK_INT >= 33 &&
+                                ContextCompat.checkSelfPermission(context, Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED
+                            ) networkPermissionLauncher.launch(Manifest.permission.NEARBY_WIFI_DEVICES)
+                            else networkRequestPending = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MnaColors.AccentButton, contentColor = Color.White)
+                    ) {
+                        Text("Solicitar conexión")
+                    }
+                    if (activeNetworkCallback != null) {
+                        OutlinedButton(
+                            onClick = {
+                                activeNetworkCallback?.let { callback ->
+                                    runCatching { connectivityManager.unregisterNetworkCallback(callback) }
+                                }
+                                activeNetworkCallback = null
+                                networkStatus = "Solicitud de conexión cancelada."
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Cancelar solicitud") }
+                    }
+                    Text(networkStatus, color = MnaColors.TextSecondary, fontSize = 12.sp)
                 }
             }
 
