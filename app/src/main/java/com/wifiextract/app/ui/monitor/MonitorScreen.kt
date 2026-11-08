@@ -21,8 +21,6 @@ import android.net.wifi.rtt.RangingResult
 import android.net.wifi.rtt.RangingResultCallback
 import android.net.wifi.rtt.WifiRttManager
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -191,7 +189,7 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                     rangingResults = rangingResults + (result.BSSID to label)
                 }
             }
-            rttManager.startRanging(request, callback, Handler(Looper.getMainLooper()))
+            rttManager.startRanging(request, ContextCompat.getMainExecutor(context), callback)
         }.onFailure {
             rangingResults = rangingResults + (result.BSSID to "No se pudo iniciar RTT: ${it.message ?: "error del sistema"}.")
         }
@@ -201,7 +199,8 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { grants ->
         val allowed = if (Build.VERSION.SDK_INT >= 33) {
-            grants[Manifest.permission.NEARBY_WIFI_DEVICES] == true
+            grants[Manifest.permission.NEARBY_WIFI_DEVICES] == true &&
+                grants[Manifest.permission.ACCESS_FINE_LOCATION] == true
         } else {
             grants[Manifest.permission.ACCESS_FINE_LOCATION] == true
         }
@@ -269,10 +268,18 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
 
     fun requestRanging(result: ScanResult) {
         if (Build.VERSION.SDK_INT >= 33) {
-            val permission = Manifest.permission.NEARBY_WIFI_DEVICES
-            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+            val nearbyGranted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.NEARBY_WIFI_DEVICES
+            ) == PackageManager.PERMISSION_GRANTED
+            val locationGranted = hasScanPermissions()
+            if (!nearbyGranted || !locationGranted) {
                 pendingRanging = result
-                rttPermissionLauncher.launch(arrayOf(permission))
+                rttPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.NEARBY_WIFI_DEVICES,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    )
+                )
                 return
             }
         } else if (!hasScanPermissions()) {
@@ -519,7 +526,14 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                         InfoRow("Frecuencia", "${result.frequency} MHz")
                         InfoRow("Seguridad", securityLabel(result.capabilities))
                         InfoRow("BSSID", result.BSSID)
-                        if (Build.VERSION.SDK_INT >= 28 && result.is80211mcResponder &&
+                        val supportsAzResponder = Build.VERSION.SDK_INT >= 35 &&
+                            result.is80211azNtbResponder &&
+                            rttManager?.getRttCharacteristics()?.getBoolean(
+                                WifiRttManager.CHARACTERISTICS_KEY_BOOLEAN_NTB_INITIATOR, false
+                            ) == true
+                        val supportsRttResponder = Build.VERSION.SDK_INT >= 28 &&
+                            (result.is80211mcResponder || supportsAzResponder)
+                        if (supportsRttResponder &&
                             context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_RTT)
                         ) {
                             OutlinedButton(
