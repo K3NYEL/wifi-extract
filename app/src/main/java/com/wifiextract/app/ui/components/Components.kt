@@ -135,12 +135,12 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     .size(88.dp)
                     .border(3.dp, accent, CircleShape)
                     .clip(CircleShape)
-                    .background(Color(0xFFFFFFFF)),
+                    .background(MnaColors.SurfaceRaised),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     username.take(1).uppercase(),
-                    color = Color(0xFF000000),
+                    color = MnaColors.TextPrimary,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -181,7 +181,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                 }
                 Text(
                     "@${user?.login ?: username}",
-                    color = Color(0xFF161B22),
+                    color = MnaColors.TextSecondary,
                     fontSize = 14.sp
                 )
             }
