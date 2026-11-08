@@ -11,7 +11,8 @@ data class SettingsState(
     val checkUpdatesOnStart: Boolean,
     val resolveHostnames: Boolean,
     val keepScreenOn: Boolean,
-    val timeoutMs: Int
+    val timeoutMs: Int,
+    val theme: String = "dark"
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -23,11 +24,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         repository.checkUpdatesOnStart,
         repository.resolveHostnames,
         repository.keepScreenOn,
-        repository.timeoutMs
+        repository.timeoutMs,
+        repository.theme
     )
 
     fun setCheckUpdates(value: Boolean) { repository.checkUpdatesOnStart = value; _state.value = read() }
     fun setResolveHostnames(value: Boolean) { repository.resolveHostnames = value; _state.value = read() }
     fun setKeepScreenOn(value: Boolean) { repository.keepScreenOn = value; _state.value = read() }
     fun setTimeout(value: Int) { repository.timeoutMs = value; _state.value = read() }
+    fun setTheme(value: String) { repository.theme = value; _state.value = read() }
 }
