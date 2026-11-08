@@ -135,12 +135,12 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     .size(88.dp)
                     .border(3.dp, accent, CircleShape)
                     .clip(CircleShape)
-                    .background(Color(0xFFF1F3F5)),
+                    .background(Color(0xFFFFFFFF)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     username.take(1).uppercase(),
-                    color = Color(0xFF161B22),
+                    color = Color(0xFF000000),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -173,7 +173,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                         modifier = Modifier
                             .background(Color(0xFFE9EDF1), CircleShape)
                             .padding(horizontal = 10.dp, vertical = 5.dp),
-                        color = Color(0xFFF0F6FC),
+                        color = Color(0xFF000000),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 0.8.sp
