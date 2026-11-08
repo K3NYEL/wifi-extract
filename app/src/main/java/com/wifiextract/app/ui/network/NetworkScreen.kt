@@ -1,5 +1,12 @@
 package com.wifiextract.app.ui.network
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +38,16 @@ fun NetworkScreen(
             Modifier.padding(horizontal = 20.dp)
         )
         Spacer(Modifier.height(12.dp))
-        if (tab == 0) devices(Modifier.weight(1f)) else wifi(Modifier.weight(1f))
+        AnimatedContent(
+            targetState = tab,
+            modifier = Modifier.weight(1f),
+            label = "network-tab-transition",
+            transitionSpec = {
+                (fadeIn(tween(180)) + slideInHorizontally(tween(220)) { width -> if (targetState == 0) -width / 14 else width / 14 }) togetherWith
+                    (fadeOut(tween(120)) + slideOutHorizontally(tween(160)) { width -> if (targetState == 0) width / 14 else -width / 14 })
+            }
+        ) { selectedTab ->
+            if (selectedTab == 0) devices(Modifier.fillMaxSize()) else wifi(Modifier.fillMaxSize())
+        }
     }
 }
