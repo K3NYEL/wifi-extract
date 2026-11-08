@@ -111,6 +111,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
     val user = result?.getOrNull()
     val cardShape = RoundedCornerShape(24.dp)
     val accent = Color(0xFFD7263D)
+    val colors = MaterialTheme.colorScheme
 
     if (result == null) {
         SkeletonCard(rows = 3, modifier = modifier)
@@ -120,9 +121,8 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(18.dp, cardShape)
             .clip(cardShape)
-            .background(Color.White)
+            .background(colors.surface)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -134,15 +134,14 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .size(88.dp)
-                    .shadow(12.dp, CircleShape, ambientColor = accent.copy(alpha = 0.35f), spotColor = accent.copy(alpha = 0.45f))
                     .border(3.dp, accent, CircleShape)
                     .clip(CircleShape)
-                    .background(Color(0xFFF1F3F5)),
+                    .background(colors.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     username.take(1).uppercase(),
-                    color = Color(0xFF161B22),
+                    color = colors.onSurface,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -164,7 +163,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                 ) {
                     Text(
                         text = user?.name?.takeIf { it.isNotBlank() } ?: username,
-                        color = Color(0xFFF0F6FC),
+                        color = colors.onSurface,
                         fontSize = 30.sp,
                         lineHeight = 34.sp,
                         fontWeight = FontWeight.Bold,
@@ -173,9 +172,9 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     Text(
                         "GITHUB",
                         modifier = Modifier
-                            .background(Color(0xFFE9EDF1), CircleShape)
+                            .background(colors.surfaceVariant, CircleShape)
                             .padding(horizontal = 10.dp, vertical = 5.dp),
-                        color = Color(0xFFF0F6FC),
+                        color = colors.onSurfaceVariant,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 0.8.sp
@@ -183,7 +182,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                 }
                 Text(
                     "@${user?.login ?: username}",
-                    color = Color(0xFF626B75),
+                    color = colors.onSurfaceVariant,
                     fontSize = 14.sp
                 )
             }
@@ -206,7 +205,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     ) {
                         Text(
                             label,
-                            color = Color(0xFFA9B4C2),
+                            color = colors.onSurfaceVariant,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
@@ -214,7 +213,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                         )
                         Text(
                             value.toString(),
-                            color = Color(0xFFF0F6FC),
+                            color = colors.onSurface,
                             fontSize = 40.sp,
                             lineHeight = 44.sp,
                             fontWeight = FontWeight.Bold,
@@ -246,7 +245,6 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
         }
     }
 }
-
 @Composable
 private fun DeveloperAvatar(painter: Painter?, initials: String) {
     val shape = CircleShape
