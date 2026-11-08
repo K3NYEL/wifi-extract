@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -117,14 +118,21 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
 
     val user = current.getOrNull()
 
-    MnaCard(modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MnaColors.SurfaceRaised, MnaShapes.Card)
+            .border(1.dp, MnaColors.Accent.copy(alpha = 0.38f), MnaShapes.Card)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         if (user != null) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    modifier = Modifier.size(64.dp).clip(CircleShape).background(MnaColors.SurfaceRaised),
+                    modifier = Modifier.size(72.dp).border(2.dp, MnaColors.Accent, CircleShape).clip(CircleShape).background(MnaColors.Surface),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -139,9 +147,10 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxSize()
                     )
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(user.name, color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("@${user.login}", color = MnaColors.TextSecondary, fontSize = 13.sp)
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text(user.name, color = MnaColors.TextPrimary, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    Text("@${user.login}", color = MnaColors.AccentText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    StatusChip("GITHUB", MnaColors.AccentText)
                 }
             }
 
