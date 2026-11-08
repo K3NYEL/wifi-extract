@@ -41,11 +41,12 @@ fun UpdatesScreen(
     onDownload: (ReleaseInfo) -> Unit,
     onCancel: () -> Unit,
     onInstall: () -> Unit,
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     Column(modifier.fillMaxSize()) {
-        ScreenHeader("Update Manager")
+        ScreenHeader("Actualizaciones", onBack = onBack)
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)

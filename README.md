@@ -2,7 +2,7 @@
 
 Native Android network information and diagnostics application built with Kotlin and Jetpack Compose.
 
-The six-screen HTML mockup supplied for this project is the product's visual and information-architecture reference. The Android implementation uses five persistent bottom-navigation destinations; **Scope and limits** is presented inside Settings.
+The six-screen HTML mockup supplied for this project is the product's visual and information-architecture reference. The Android implementation uses four persistent bottom-navigation destinations: **Inicio**, **Red** (Devices + nearby Wi-Fi), **Herramientas** (Diagnostics) and **Ajustes** (including Updates and **Scope and limits**).
 
 ## Product structure
 
@@ -24,7 +24,7 @@ Unavailable capabilities are explicitly marked as coming soon. The app must not 
 - No gray borders: surfaces separate content
 - Accent: `#E5322D`
 - Inter for interface text and JetBrains Mono for technical values (font packaging and license review are pending).
-- 4 dp cards, 12 dp buttons, 4/8 dp spacing grid and restrained motion (skeleton pulse only).
+- 16 dp cards, 12 dp buttons, pill chips, segmented controls for option groups, 4/8 dp spacing grid and restrained motion (skeleton pulse only).
 - Material 3, accessible touch targets and text/icon state indicators.
 
 ## Technology

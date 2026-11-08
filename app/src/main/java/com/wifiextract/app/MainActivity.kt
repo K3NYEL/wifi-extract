@@ -2,14 +2,15 @@ package com.wifiextract.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -34,13 +35,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import com.wifiextract.app.ui.dashboard.DashboardScreen
+import com.wifiextract.app.ui.home.HomeScreen
+import com.wifiextract.app.ui.network.NetworkScreen
 import com.wifiextract.app.ui.devices.DevicesScreen
 import com.wifiextract.app.ui.devices.DevicesViewModel
 import com.wifiextract.app.ui.diagnostics.DiagnosticsScreen
 import com.wifiextract.app.ui.diagnostics.DiagnosticsViewModel
 import com.wifiextract.app.ui.monitor.MonitorScreen
-import com.wifiextract.app.ui.overview.OverviewScreen
 import com.wifiextract.app.ui.settings.SettingsScreen
 import com.wifiextract.app.ui.settings.SettingsViewModel
 import com.wifiextract.app.ui.theme.MnaColors
@@ -50,13 +51,11 @@ import com.wifiextract.app.ui.updates.UpdatesScreen
 import com.wifiextract.app.ui.updates.UpdatesViewModel
 
 enum class Screen(val label: Int? = null, val icon: ImageVector? = null, val isTab: Boolean = true) {
-    Dashboard(R.string.nav_dashboard, Icons.Default.Dashboard),
-    Overview(R.string.nav_overview, Icons.Default.Home),
-    Diagnostics(R.string.nav_diagnostics, Icons.Default.Build),
+    Home(R.string.nav_home, Icons.Default.Home),
+    Network(R.string.nav_network, Icons.Default.Wifi),
+    Tools(R.string.nav_tools, Icons.Default.Build),
     Settings(R.string.nav_settings, Icons.Default.Settings),
-    Devices(isTab = false),
-    Updates(isTab = false),
-    Monitor(isTab = false)
+    Updates(isTab = false)
 }
 
 class MainActivity : ComponentActivity() {
@@ -86,10 +85,15 @@ private fun MnaApp(
     updates: UpdatesViewModel,
     settings: SettingsViewModel
 ) {
-    var currentScreen by rememberSaveable { mutableStateOf(Screen.Dashboard) }
+    var currentScreen by rememberSaveable { mutableStateOf(Screen.Home) }
+    var networkTab by rememberSaveable { mutableStateOf(0) }
     val context = LocalContext.current
     val updateState by updates.state.collectAsState()
     val installed = updates.installed
+
+    BackHandler(enabled = currentScreen != Screen.Home) {
+        currentScreen = if (currentScreen == Screen.Updates) Screen.Settings else Screen.Home
+    }
 
     Scaffold(
         containerColor = MnaColors.Background,
@@ -102,7 +106,7 @@ private fun MnaApp(
                 ) {
                     Screen.entries.filter { it.isTab }.forEach { screen ->
                         val label = stringResource(screen.label!!)
-                        val isSelected = currentScreen == screen
+                        val isSelected = currentScreen == screen || (screen == Screen.Settings && currentScreen == Screen.Updates)
                         NavigationBarItem(
                             selected = isSelected,
                             onClick = { currentScreen = screen },
@@ -130,23 +134,43 @@ private fun MnaApp(
     ) { padding ->
         val modifier = Modifier.padding(padding)
         when (currentScreen) {
-            Screen.Dashboard -> DashboardScreen(
+            Screen.Home -> HomeScreen(
                 networkState = network.state.collectAsState().value,
                 updateState = updateState,
                 deviceCount = devices.state.collectAsState().value.devices.size,
-                onOpenDevices = { currentScreen = Screen.Devices },
-                onOpenDiagnostics = { currentScreen = Screen.Diagnostics },
+                onScan = {
+                    devices.startScan()
+                    networkTab = 0
+                    currentScreen = Screen.Network
+                },
+                onOpenTools = { currentScreen = Screen.Tools },
+                onOpenWifi = {
+                    networkTab = 1
+                    currentScreen = Screen.Network
+                },
                 onOpenUpdates = { currentScreen = Screen.Updates },
-                onOpenMonitor = { currentScreen = Screen.Monitor },
-                onRefreshNetwork = network::refresh,
-                modifier = modifier
-            )
-            Screen.Overview -> OverviewScreen(
-                state = network.state.collectAsState().value,
                 onRefresh = network::refresh,
                 modifier = modifier
             )
-            Screen.Diagnostics -> DiagnosticsScreen(
+            Screen.Network -> NetworkScreen(
+                tab = networkTab,
+                onTab = { networkTab = it },
+                devices = { m ->
+                    DevicesScreen(
+                        state = devices.state.collectAsState().value,
+                        onScan = devices::startScan,
+                        onStop = devices::stopScan,
+                        onPing = { host ->
+                            diagnostics.prefill(host)
+                            currentScreen = Screen.Tools
+                        },
+                        modifier = m
+                    )
+                },
+                wifi = { m -> MonitorScreen(modifier = m) },
+                modifier = modifier
+            )
+            Screen.Tools -> DiagnosticsScreen(
                 state = diagnostics.state.collectAsState().value,
                 onTool = diagnostics::selectTool,
                 onHost = diagnostics::setHost,
@@ -164,17 +188,8 @@ private fun MnaApp(
                 onTimeout = settings::setTimeout,
                 onTheme = settings::setTheme,
                 onOpenUpdates = { currentScreen = Screen.Updates },
-                modifier = modifier
-            )
-            Screen.Devices -> DevicesScreen(
-                state = devices.state.collectAsState().value,
-                onScan = devices::startScan,
-                onStop = devices::stopScan,
-                onPing = { host ->
-                    diagnostics.prefill(host)
-                    currentScreen = Screen.Diagnostics
-                },
-                modifier = modifier
+                modifier = modifier,
+                updateAvailable = updateState is UpdateUiState.Available
             )
             Screen.Updates -> UpdatesScreen(
                 state = updateState,
@@ -183,9 +198,7 @@ private fun MnaApp(
                 onDownload = updates::download,
                 onCancel = updates::cancelDownload,
                 onInstall = { updates.install(context) },
-                modifier = modifier
-            )
-            Screen.Monitor -> MonitorScreen(
+                onBack = { currentScreen = Screen.Settings },
                 modifier = modifier
             )
         }
