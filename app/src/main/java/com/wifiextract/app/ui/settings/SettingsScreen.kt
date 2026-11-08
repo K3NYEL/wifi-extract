@@ -1,5 +1,11 @@
 package com.wifiextract.app.ui.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -220,8 +226,15 @@ private fun AboutRow(title: String, content: @Composable () -> Unit) {
             onClick = { open = !open },
             chevron = if (open) Icons.Default.ExpandLess else Icons.Default.ExpandMore
         )
-        if (open) {
-            Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
+        AnimatedVisibility(
+            visible = open,
+            enter = expandVertically(animationSpec = tween(240)) + fadeIn(animationSpec = tween(180)),
+            exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(animationSpec = tween(140))
+        ) {
+            Column(
+                Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) { content() }
         }
     }
 }
