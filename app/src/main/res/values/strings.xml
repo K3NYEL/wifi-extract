@@ -2,6 +2,9 @@
 <resources>
     <string name="app_name">Mobile Network Analyzer</string>
     <string name="nav_dashboard">Panel</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_network">Red</string>
+    <string name="nav_tools">Herramientas</string>
     <string name="nav_overview">Resumen</string>
     <string name="nav_devices">Dispositivos</string>
     <string name="nav_diagnostics">Diagnóstico</string>

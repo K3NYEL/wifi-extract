@@ -32,6 +32,9 @@ import com.wifiextract.app.ui.components.Note
 import com.wifiextract.app.ui.components.PrimaryButton
 import com.wifiextract.app.ui.components.ScreenHeader
 import com.wifiextract.app.ui.components.SecondaryButton
+import com.wifiextract.app.ui.components.SectionLabel
+import com.wifiextract.app.ui.components.SegmentedControl
+import com.wifiextract.app.ui.components.TerminalBlock
 import com.wifiextract.app.ui.components.SkeletonLines
 import com.wifiextract.app.ui.theme.MnaColors
 import com.wifiextract.app.ui.theme.MnaShapes
@@ -48,34 +51,28 @@ fun DiagnosticsScreen(
 ) {
     val clipboard = LocalClipboardManager.current
     Column(modifier.fillMaxSize()) {
-        ScreenHeader("Network Diagnostics")
+        ScreenHeader("Herramientas")
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                ToolButton("Ping", state.tool == DiagnosticTool.Ping, Modifier.weight(1f)) { onTool(DiagnosticTool.Ping) }
-                ToolButton("Consulta DNS", state.tool == DiagnosticTool.Dns, Modifier.weight(1f)) { onTool(DiagnosticTool.Dns) }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                ToolButton("Puerto TCP", state.tool == DiagnosticTool.Port, Modifier.weight(1f)) { onTool(DiagnosticTool.Port) }
-                Button(
-                    onClick = {},
-                    enabled = false,
-                    modifier = Modifier.weight(1f).height(56.dp),
-                    shape = MnaShapes.Button,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        disabledContainerColor = MnaColors.SurfaceRaised,
-                        disabledContentColor = MnaColors.TextSecondary
-                    )
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("Traceroute", fontSize = 14.sp)
-                        ComingSoonTag()
+            SegmentedControl(
+                options = listOf("Ping", "DNS", "Puerto", "Trace"),
+                selected = when (state.tool) {
+                    DiagnosticTool.Ping -> 0
+                    DiagnosticTool.Dns -> 1
+                    DiagnosticTool.Port -> 2
+                    else -> 0
+                },
+                onSelect = {
+                    when (it) {
+                        0 -> onTool(DiagnosticTool.Ping)
+                        1 -> onTool(DiagnosticTool.Dns)
+                        2 -> onTool(DiagnosticTool.Port)
                     }
-                }
-            }
+                },
+                disabled = setOf(3)
+            )
             MnaCard {
                 Eyebrow("DESTINO")
                 MnaTextField(state.host, onHost, "Host o IPv4", onDone = onRun)
@@ -98,13 +95,12 @@ fun DiagnosticsScreen(
                 )
             }
             if (state.lines.isNotEmpty() || state.running) {
-                MnaCard {
-                    Eyebrow("RESULTADO")
-                    state.lines.forEach {
-                        Text(it, color = MnaColors.TextPrimary, fontSize = 12.sp, lineHeight = 19.sp, fontFamily = FontFamily.Monospace)
-                    }
-                    if (state.running) SkeletonLines(lines = 2)
-                }
+                SectionLabel("Resultado")
+                TerminalBlock(state.lines) { if (state.running) SkeletonLines(lines = 2) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Traceroute", color = MnaColors.TextSecondary, fontSize = 12.sp)
+                ComingSoonTag()
             }
             Note("Cada comprobación va dirigida a un único host, es cancelable y tiene tiempo máximo. Úsalas solo en redes y equipos propios o con autorización.")
             Spacer(Modifier.height(28.dp))

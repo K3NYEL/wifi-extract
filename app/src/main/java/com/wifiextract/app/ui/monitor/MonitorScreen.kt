@@ -353,7 +353,6 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        ScreenHeader("Monitor Wi-Fi")
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),

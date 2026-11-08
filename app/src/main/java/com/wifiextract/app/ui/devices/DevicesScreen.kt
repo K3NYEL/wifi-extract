@@ -47,7 +47,6 @@ fun DevicesScreen(
     }
 
     Column(modifier.fillMaxSize()) {
-        ScreenHeader("Device Discovery")
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)

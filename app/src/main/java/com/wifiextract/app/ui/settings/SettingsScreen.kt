@@ -13,15 +13,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wifiextract.app.R
@@ -30,9 +37,11 @@ import com.wifiextract.app.ui.components.Eyebrow
 import com.wifiextract.app.ui.components.InfoRow
 import com.wifiextract.app.ui.components.MnaCard
 import com.wifiextract.app.ui.components.Note
-import com.wifiextract.app.ui.components.PrimaryButton
 import com.wifiextract.app.ui.components.ScreenHeader
-import com.wifiextract.app.ui.components.SecondaryButton
+import com.wifiextract.app.ui.components.SectionLabel
+import com.wifiextract.app.ui.components.SegmentedControl
+import com.wifiextract.app.ui.components.SettingsRow
+import com.wifiextract.app.ui.components.StatusChip
 import com.wifiextract.app.ui.theme.MnaColors
 import com.wifiextract.app.ui.theme.MnaShapes
 
@@ -46,70 +55,88 @@ fun SettingsScreen(
     onTimeout: (Int) -> Unit,
     onTheme: (String) -> Unit,
     onOpenUpdates: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    updateAvailable: Boolean = false
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        ScreenHeader("Application Settings")
+        ScreenHeader("Ajustes")
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            MnaCard {
-                Eyebrow(stringResource(R.string.settings_updates_title))
-                Note(stringResource(R.string.settings_updates_desc))
-                PrimaryButton(stringResource(R.string.nav_updates), onOpenUpdates, Modifier.fillMaxWidth())
+            MnaCardRow {
+                SettingsRow(
+                    title = stringResource(R.string.settings_updates_title),
+                    subtitle = stringResource(R.string.settings_updates_desc),
+                    onClick = onOpenUpdates,
+                    trailing = { if (updateAvailable) StatusChip("NUEVA", MnaColors.AccentText) }
+                )
             }
-            MnaCard {
-                Eyebrow("TEMA DE LA APLICACIÓN")
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (state.theme == "dark") {
-                        PrimaryButton("Oscuro", { onTheme("dark") }, Modifier.weight(1f))
-                        SecondaryButton("Claro", { onTheme("light") }, Modifier.weight(1f))
-                    } else {
-                        SecondaryButton("Oscuro", { onTheme("dark") }, Modifier.weight(1f))
-                        PrimaryButton("Claro", { onTheme("light") }, Modifier.weight(1f))
-                    }
-                }
-            }
+
+            SectionLabel("Apariencia")
+            SegmentedControl(
+                options = listOf("Oscuro", "Claro"),
+                selected = if (state.theme == "dark") 0 else 1,
+                onSelect = { onTheme(if (it == 0) "dark" else "light") }
+            )
+
+            SectionLabel("Escaneo")
             ToggleRow("Comprobar actualizaciones al iniciar", state.checkUpdatesOnStart, onCheckUpdates)
             ToggleRow("Resolver nombres de host", state.resolveHostnames, onResolveHostnames)
             ToggleRow("Mantener pantalla activa al escanear", state.keepScreenOn, onKeepScreenOn)
             MnaCard {
                 Eyebrow("TIEMPO DE ESPERA POR COMPROBACIÓN")
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SettingsRepository.TIMEOUT_OPTIONS.forEach { ms ->
-                        val label = "$ms ms"
-                        if (ms == state.timeoutMs) PrimaryButton(label, { onTimeout(ms) }, Modifier.weight(1f))
-                        else SecondaryButton(label, { onTimeout(ms) }, Modifier.weight(1f))
-                    }
-                }
+                val options = SettingsRepository.TIMEOUT_OPTIONS
+                SegmentedControl(
+                    options = options.map { "$it ms" },
+                    selected = options.indexOf(state.timeoutMs).coerceAtLeast(0),
+                    onSelect = { onTimeout(options[it]) }
+                )
                 InfoRow("Rango de escaneo", "Auto /24")
             }
-            MnaCard {
-                Eyebrow("PRIVACIDAD")
-                Note("Los datos de conexión se leen localmente y no se envían a servidores del proyecto. La comprobación de actualizaciones contacta con GitHub (api.github.com), que puede registrar tu dirección IP.")
+
+            SectionLabel("Acerca de")
+            MnaCardRow {
+                AboutRow("Privacidad y permisos") {
+                    Note("Los datos de conexión se leen localmente y no se envían a servidores del proyecto. La comprobación de actualizaciones contacta con GitHub (api.github.com), que puede registrar tu dirección IP.")
+                    Note("Estado de red, estado Wi-Fi e Internet. «Instalar apps desconocidas» solo se solicita al instalar una actualización verificada. No se piden ubicación ni contactos.")
+                }
+                AboutRow("Alcance y límites") {
+                    listOf(
+                        "Solo redes locales a las que el dispositivo ya está conectado",
+                        "Sin captura de paquetes ni modo monitor (requiere root)",
+                        "MAC y fabricante limitados desde Android 10+",
+                        "Sin acceso a dispositivos ni credenciales de terceros",
+                        "Escaneos activos solo con acción explícita del usuario",
+                        "Funciones no terminadas se marcan «Próximamente»"
+                    ).forEach { Text("·  $it", color = MnaColors.TextSecondary, fontSize = 13.sp, lineHeight = 19.sp) }
+                }
+                AboutRow("Licencias") {
+                    Note("El inventario de licencias de terceros estará disponible antes de la primera distribución estable.")
+                }
             }
-            MnaCard {
-                Eyebrow("PERMISOS")
-                Note("Estado de red, estado Wi-Fi e Internet. «Instalar apps desconocidas» solo se solicita al instalar una actualización verificada. No se piden ubicación ni contactos.")
-            }
-            MnaCard {
-                Eyebrow("ALCANCE Y LÍMITES")
-                listOf(
-                    "Solo redes locales a las que el dispositivo ya está conectado",
-                    "Sin captura de paquetes ni modo monitor (requiere root)",
-                    "MAC y fabricante limitados desde Android 10+",
-                    "Sin acceso a dispositivos ni credenciales de terceros",
-                    "Escaneos activos solo con acción explícita del usuario",
-                    "Funciones no terminadas se marcan «Próximamente»"
-                ).forEach { Text("·  $it", color = MnaColors.TextSecondary, fontSize = 13.sp, lineHeight = 19.sp) }
-            }
-            MnaCard {
-                Eyebrow("LICENCIAS")
-                Note("El inventario de licencias de terceros estará disponible antes de la primera distribución estable.")
-                InfoRow("Versión", versionLabel)
-            }
-            Spacer(Modifier.height(28.dp))
+            InfoRow("Versión", versionLabel)
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun MnaCardRow(content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxWidth().background(MnaColors.Surface, MnaShapes.Card)) { content() }
+}
+
+@Composable
+private fun AboutRow(title: String, content: @Composable () -> Unit) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    Column {
+        SettingsRow(
+            title = title,
+            onClick = { open = !open },
+            chevron = if (open) Icons.Default.ExpandLess else Icons.Default.ExpandMore
+        )
+        if (open) {
+            Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
         }
     }
 }
@@ -121,7 +148,7 @@ private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
             .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
             .background(MnaColors.Surface, MnaShapes.Card)
             .heightIn(min = 56.dp)
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

@@ -8,6 +8,12 @@
 
 All notable changes to Mobile Network Analyzer are documented here.
 
+## [Unreleased]
+- Redesigns navigation into four tabs: Inicio, Red, Herramientas and Ajustes.
+- Merges Dashboard and Overview into Inicio with a single primary action; Devices and Wi-Fi scan now live under Red; Updates is a sub-screen of Ajustes.
+- Adds SegmentedControl, MetricTile, ActionTile, SettingsRow, SectionLabel and TerminalBlock components; cards use 16 dp radius and chips are pills.
+- Groups Ajustes into Apariencia, Escaneo and Acerca de.
+
 ## [0.1.7] - 2026-11-07
 - Adds a functional Wi-Fi scan screen using Android WifiManager and scan-result broadcasts.
 - Shows current Wi-Fi connection metrics through ConnectivityManager and NetworkCapabilities: SSID when permitted, RSSI, frequency, link speed, Wi-Fi standard and channel.
