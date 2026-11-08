@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -104,80 +105,144 @@ fun DeveloperImage(modifier: Modifier = Modifier, painter: Painter? = null, init
 @Composable
 fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
-
-    // null = cargando
     val result by produceState<Result<GithubUser>?>(initialValue = null, key1 = username) {
         value = fetchGithubUser(username)
     }
-    val current = result
+    val user = result?.getOrNull()
+    val cardShape = RoundedCornerShape(24.dp)
+    val accent = Color(0xFFD7263D)
 
-    if (current == null) {
-        SkeletonCard(rows = 4, modifier = modifier)
+    if (result == null) {
+        SkeletonCard(rows = 3, modifier = modifier)
         return
     }
-
-    val user = current.getOrNull()
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(MnaColors.SurfaceRaised, MnaShapes.Card)
-            .border(1.dp, MnaColors.Accent.copy(alpha = 0.38f), MnaShapes.Card)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .shadow(18.dp, cardShape)
+            .clip(cardShape)
+            .background(Color(0xFF161B22))
+            .border(1.dp, Color(0xFF2A313C), cardShape)
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        if (user != null) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(88.dp)
+                    .shadow(12.dp, CircleShape, ambientColor = accent.copy(alpha = 0.35f), spotColor = accent.copy(alpha = 0.45f))
+                    .border(3.dp, accent, CircleShape)
+                    .clip(CircleShape)
+                    .background(Color(0xFF262D38)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.size(72.dp).border(2.dp, MnaColors.Accent, CircleShape).clip(CircleShape).background(MnaColors.Surface),
-                    contentAlignment = Alignment.Center
+                Text(
+                    username.take(1).uppercase(),
+                    color = Color(0xFFF0F6FC),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                CoilAsyncImage(
+                    model = user?.avatarUrl,
+                    contentDescription = "Avatar de @$username",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        user.login.take(1).uppercase(),
-                        color = MnaColors.TextSecondary,
-                        fontWeight = FontWeight.Bold
+                        text = user?.name?.takeIf { it.isNotBlank() } ?: username,
+                        color = Color(0xFFF0F6FC),
+                        fontSize = 30.sp,
+                        lineHeight = 34.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.SansSerif
                     )
-                    CoilAsyncImage(
-                        model = user.avatarUrl,
-                        contentDescription = "Avatar de @${user.login}",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                    Text(
+                        "GITHUB",
+                        modifier = Modifier
+                            .background(Color(0xFF262D38), CircleShape)
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        color = Color(0xFFF0F6FC),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.8.sp
                     )
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(user.name, color = MnaColors.TextPrimary, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                    Text("@${user.login}", color = MnaColors.AccentText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    StatusChip("GITHUB", MnaColors.AccentText)
+                Text(
+                    "@${user?.login ?: username}",
+                    color = Color(0xFFA9B4C2),
+                    fontSize = 14.sp
+                )
+            }
+        }
+
+        if (user != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf(
+                    stringResource(R.string.github_repos) to user.publicRepos,
+                    stringResource(R.string.github_followers) to user.followers,
+                    stringResource(R.string.github_following) to user.following
+                ).forEach { (label, value) ->
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            label,
+                            color = Color(0xFFA9B4C2),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1
+                        )
+                        Text(
+                            value.toString(),
+                            color = Color(0xFFF0F6FC),
+                            fontSize = 40.sp,
+                            lineHeight = 44.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.SansSerif,
+                            maxLines = 1
+                        )
+                    }
                 }
             }
-
-            user.bio?.let { Note(it) }
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricTile(stringResource(R.string.github_repos), user.publicRepos.toString(), Modifier.weight(1f))
-                MetricTile(stringResource(R.string.github_followers), user.followers.toString(), Modifier.weight(1f))
-                MetricTile(stringResource(R.string.github_following), user.following.toString(), Modifier.weight(1f))
-            }
-
-            user.location?.let { InfoRow(stringResource(R.string.github_location), it, mono = false) }
-            user.company?.let { InfoRow(stringResource(R.string.github_company), it, mono = false) }
-
-            PrimaryButton(
-                text = stringResource(R.string.view_on_github),
-                onClick = { uriHandler.openUri(user.htmlUrl) },
-                modifier = Modifier.fillMaxWidth()
-            )
         } else {
-            // Fallback si falla la red, el usuario no existe o se agotó el límite
-            Text(username, color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Note(stringResource(R.string.github_offline))
-            PrimaryButton(
-                text = stringResource(R.string.view_on_github),
-                onClick = { uriHandler.openUri("https://github.com/$username") },
-                modifier = Modifier.fillMaxWidth()
+        }
+
+        androidx.compose.material3.Button(
+            onClick = { uriHandler.openUri(user?.htmlUrl ?: "https://github.com/$username") },
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = accent,
+                contentColor = Color.White
+            ),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text(
+                stringResource(R.string.view_on_github),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
             )
         }
     }
