@@ -122,16 +122,16 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .background(colors.surface)
+            .background(colors.surfaceVariant)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Text(
             text = "Developer",
             modifier = Modifier
-                .background(colors.surfaceVariant, RoundedCornerShape(8.dp))
+                .background(accent.copy(alpha = 0.14f), RoundedCornerShape(8.dp))
                 .padding(horizontal = 10.dp, vertical = 5.dp),
-            color = colors.onSurfaceVariant,
+            color = accent,
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = 0.5.sp
