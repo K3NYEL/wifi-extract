@@ -121,7 +121,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .background(Color.White)
+            .background(MnaColors.Surface)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -162,7 +162,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                 ) {
                     Text(
                         text = user?.name?.takeIf { it.isNotBlank() } ?: username,
-                        color = Color(0xFF161B22),
+                        color = MnaColors.TextPrimary,
                         fontSize = 30.sp,
                         lineHeight = 34.sp,
                         fontWeight = FontWeight.Bold,
@@ -171,7 +171,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     Text(
                         "GITHUB",
                         modifier = Modifier
-                            .background(Color(0xFFE9EDF1), CircleShape)
+                            .background(MnaColors.SurfaceRaised, CircleShape)
                             .padding(horizontal = 10.dp, vertical = 5.dp),
                         color = Color(0xFF000000),
                         fontSize = 10.sp,
@@ -212,7 +212,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                         )
                         Text(
                             value.toString(),
-                            color = Color(0xFFF0F6FC),
+                            color = MnaColors.TextPrimary,
                             fontSize = 40.sp,
                             lineHeight = 44.sp,
                             fontWeight = FontWeight.Bold,
