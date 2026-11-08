@@ -123,7 +123,6 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
             .shadow(18.dp, cardShape)
             .clip(cardShape)
             .background(Color(0xFF161B22))
-            .border(1.dp, Color(0xFF2A313C), cardShape)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
