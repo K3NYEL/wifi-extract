@@ -54,7 +54,7 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier, trailing: @Compos
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(title, modifier = Modifier.weight(1f), color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Text(title, modifier = Modifier.weight(1f), color = MnaColors.TextPrimary, fontSize = 26.sp, fontWeight = FontWeight.Bold)
         trailing()
     }
 }
@@ -62,7 +62,7 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier, trailing: @Compos
 @Composable
 fun MnaCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Column(
-        modifier = modifier.fillMaxWidth().background(MnaColors.Surface, MnaShapes.Card).padding(14.dp),
+        modifier = modifier.fillMaxWidth().background(MnaColors.Surface, MnaShapes.Card).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
         content = content
     )
@@ -70,7 +70,7 @@ fun MnaCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -
 
 @Composable
 fun Eyebrow(text: String, modifier: Modifier = Modifier) {
-    Text(text, modifier = modifier, color = MnaColors.TextSecondary, fontSize = 11.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Medium)
+    Text(text, modifier = modifier, color = MnaColors.TextSecondary, fontSize = 12.sp, letterSpacing = 0.8.sp, fontWeight = FontWeight.Medium)
 }
 
 @Composable
