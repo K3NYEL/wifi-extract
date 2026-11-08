@@ -35,6 +35,7 @@ import com.wifiextract.app.R
 import com.wifiextract.app.data.SettingsRepository
 import com.wifiextract.app.ui.components.Eyebrow
 import com.wifiextract.app.ui.components.GithubProfileCard
+import com.wifiextract.app.ui.components.GithubContributors
 import com.wifiextract.app.ui.components.InfoRow
 import com.wifiextract.app.ui.components.MnaCard
 import com.wifiextract.app.ui.components.Note
