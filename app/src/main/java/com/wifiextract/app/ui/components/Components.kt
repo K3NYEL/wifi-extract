@@ -162,7 +162,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                 ) {
                     Text(
                         text = user?.name?.takeIf { it.isNotBlank() } ?: username,
-                        color = Color(0xFFF0F6FC),
+                        color = Color(0xFF161B22),
                         fontSize = 30.sp,
                         lineHeight = 34.sp,
                         fontWeight = FontWeight.Bold,
@@ -181,7 +181,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                 }
                 Text(
                     "@${user?.login ?: username}",
-                    color = Color(0xFF626B75),
+                    color = Color(0xFF161B22),
                     fontSize = 14.sp
                 )
             }
@@ -204,7 +204,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     ) {
                         Text(
                             label,
-                            color = Color(0xFFA9B4C2),
+                            color = Color(0xFF161B22),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
