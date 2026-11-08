@@ -1,6 +1,7 @@
 package com.wifiextract.app.ui.monitor
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -74,6 +75,7 @@ private data class WifiConnectionSnapshot(
     val standard: String
 )
 
+@SuppressLint("NewApi")
 @Composable
 fun MonitorScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -96,7 +98,12 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     }
     val rttManager = remember {
-        context.getSystemService(Context.WIFI_RTT_RANGING_SERVICE) as? WifiRttManager
+        if (Build.VERSION.SDK_INT >= 28) {
+            @Suppress("NewApi")
+            context.getSystemService("wifirtt") as? WifiRttManager
+        } else {
+            null
+        }
     }
 
     fun hasScanPermissions(): Boolean {
