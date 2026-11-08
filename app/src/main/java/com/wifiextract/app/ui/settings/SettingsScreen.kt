@@ -17,15 +17,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,8 +47,6 @@ import com.wifiextract.app.ui.components.SettingsRow
 import com.wifiextract.app.ui.components.StatusChip
 import com.wifiextract.app.ui.theme.MnaColors
 import com.wifiextract.app.ui.theme.MnaShapes
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
@@ -68,9 +62,6 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     updateAvailable: Boolean = false
 ) {
-    var changingLanguage by remember { mutableStateOf(false) }
-    val languageScope = rememberCoroutineScope()
-
     Box(modifier = modifier.fillMaxSize()) {
       Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(stringResource(R.string.nav_settings))
@@ -127,13 +118,7 @@ fun SettingsScreen(
                         1 -> "es"
                         else -> "en"
                     }
-                    if (langStr != state.language && !changingLanguage) {
-                        languageScope.launch {
-                            changingLanguage = true
-                            delay(250)
-                            onLanguage(langStr)
-                        }
-                    }
+                    if (langStr != state.language) onLanguage(langStr)
                 }
             )
 
@@ -187,17 +172,6 @@ fun SettingsScreen(
             InfoRow(stringResource(R.string.lbl_version), versionLabel)
             Spacer(Modifier.height(16.dp))
         }
-      }
-      if (changingLanguage) {
-          Box(
-              modifier = Modifier.fillMaxSize().background(MnaColors.Background),
-              contentAlignment = Alignment.Center
-          ) {
-              Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                  CircularProgressIndicator(color = MnaColors.Accent)
-                  Text(stringResource(R.string.language_changing), color = MnaColors.TextPrimary, fontSize = 15.sp)
-              }
-          }
       }
     }
 }
