@@ -102,6 +102,9 @@
     <string name="about_contact">Contact &amp; GitHub</string>
     <string name="about_contact_desc">Contact developer (K3NYEL):</string>
     <string name="btn_go_github">Go to GitHub</string>
+    <string name="about_contributors">Contributors &amp; developers</string>
+    <string name="github_contributors_unavailable">Could not load GitHub profiles. Check your connection.</string>
+    <string name="github_contributors_empty">There are no public contributors listed yet.</string>
     <string name="about_privacy">Privacy and permissions</string>
     <string name="about_scope">Scope and limits</string>
     <string name="about_licenses">Licenses</string>
