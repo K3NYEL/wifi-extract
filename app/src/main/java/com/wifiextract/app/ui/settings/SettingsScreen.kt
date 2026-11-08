@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -67,7 +66,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     updateAvailable: Boolean = false
 ) {
-    var changingLanguage by rememberSaveable { mutableStateOf(false) }
+    var changingLanguage by mutableStateOf(false)
     val languageScope = rememberCoroutineScope()
 
     Box(modifier = modifier.fillMaxSize()) {
