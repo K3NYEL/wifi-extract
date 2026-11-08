@@ -71,6 +71,7 @@ import androidx.compose.runtime.produceState
 import coil.compose.AsyncImage as CoilAsyncImage
 import com.wifiextract.app.data.GithubUser
 import com.wifiextract.app.data.fetchGithubUser
+import com.wifiextract.app.data.fetchGithubContributors
 
 private val SkeletonColor = Color(0xFF2A2A30)
 
@@ -526,5 +527,29 @@ fun TerminalBlock(lines: List<String>, modifier: Modifier = Modifier, footer: @C
     ) {
         lines.forEach { Text(it, color = MnaColors.TextPrimary, fontSize = 12.sp, lineHeight = 19.sp, fontFamily = FontFamily.Monospace) }
         footer()
+    }
+}
+
+
+@Composable
+fun GithubContributors(
+    owner: String,
+    repository: String,
+    modifier: Modifier = Modifier
+) {
+    val result by produceState<Result<List<String>>?>(initialValue = null, key1 = owner, key2 = repository) {
+        value = fetchGithubContributors(owner, repository)
+    }
+    val usernames = result?.getOrNull()
+
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        when {
+            result == null -> SkeletonCard(rows = 3, modifier = Modifier.fillMaxWidth())
+            usernames == null -> Note(stringResource(R.string.github_contributors_unavailable))
+            usernames.isEmpty() -> Note(stringResource(R.string.github_contributors_empty))
+            else -> usernames.forEach { username ->
+                GithubProfileCard(username = username, modifier = Modifier.fillMaxWidth())
+            }
+        }
     }
 }
