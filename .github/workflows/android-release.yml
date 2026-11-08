@@ -122,12 +122,12 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Mobile Network Analyzer ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: Mobile Network Analyzer ${{ env.RELEASE_TAG }}
           generate_release_notes: true
           files: |
-            MobileNetworkAnalyzer-${{ github.ref_name }}-android.apk
-            MobileNetworkAnalyzer-${{ github.ref_name }}-android.apk.sha256
+            MobileNetworkAnalyzer-${{ env.RELEASE_TAG }}-android.apk
+            MobileNetworkAnalyzer-${{ env.RELEASE_TAG }}-android.apk.sha256
           fail_on_unmatched_files: true
 
       - name: Verify published release
