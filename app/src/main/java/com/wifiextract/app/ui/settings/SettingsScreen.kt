@@ -2,6 +2,8 @@ package com.wifiextract.app.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,15 +18,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -47,6 +52,8 @@ import com.wifiextract.app.ui.components.SettingsRow
 import com.wifiextract.app.ui.components.StatusChip
 import com.wifiextract.app.ui.theme.MnaColors
 import com.wifiextract.app.ui.theme.MnaShapes
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
@@ -62,7 +69,11 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     updateAvailable: Boolean = false
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    var changingLanguage by rememberSaveable { mutableStateOf(false) }
+    val languageScope = rememberCoroutineScope()
+
+    Box(modifier = modifier.fillMaxSize()) {
+      Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(stringResource(R.string.nav_settings))
         Column(
             Modifier
@@ -117,7 +128,13 @@ fun SettingsScreen(
                         1 -> "es"
                         else -> "en"
                     }
-                    onLanguage(langStr)
+                    if (langStr != state.language && !changingLanguage) {
+                        languageScope.launch {
+                            changingLanguage = true
+                            delay(250)
+                            onLanguage(langStr)
+                        }
+                    }
                 }
             )
 
@@ -171,6 +188,18 @@ fun SettingsScreen(
             InfoRow(stringResource(R.string.lbl_version), versionLabel)
             Spacer(Modifier.height(16.dp))
         }
+      }
+      if (changingLanguage) {
+          Box(
+              modifier = Modifier.fillMaxSize().background(MnaColors.Background),
+              contentAlignment = Alignment.Center
+          ) {
+              Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                  CircularProgressIndicator(color = MnaColors.Accent)
+                  Text(stringResource(R.string.language_changing), color = MnaColors.TextPrimary, fontSize = 15.sp)
+              }
+          }
+      }
     }
 }
 
