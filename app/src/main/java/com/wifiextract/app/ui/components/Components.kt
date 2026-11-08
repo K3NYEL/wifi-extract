@@ -122,16 +122,16 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .background(colors.surfaceVariant)
+            .background(colors.surface)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Text(
             text = "Developer",
             modifier = Modifier
-                .background(accent.copy(alpha = 0.14f), RoundedCornerShape(8.dp))
+                .background(colors.surfaceVariant, RoundedCornerShape(8.dp))
                 .padding(horizontal = 10.dp, vertical = 5.dp),
-            color = accent,
+            color = colors.onSurfaceVariant,
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = 0.5.sp
@@ -197,45 +197,6 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     fontSize = 14.sp
                 )
             }
-        }
-
-        if (user != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf(
-                    stringResource(R.string.github_repos) to user.publicRepos,
-                    stringResource(R.string.github_followers) to user.followers,
-                    stringResource(R.string.github_following) to user.following
-                ).forEach { (label, value) ->
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            label,
-                            color = colors.onSurfaceVariant,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1
-                        )
-                        Text(
-                            value.toString(),
-                            color = colors.onSurface,
-                            fontSize = 40.sp,
-                            lineHeight = 44.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.SansSerif,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
-        } else {
-            Note(stringResource(R.string.github_offline))
         }
 
         androidx.compose.material3.Button(
