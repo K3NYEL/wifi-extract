@@ -7,6 +7,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -132,11 +140,24 @@ private fun MnaApp(
                             selected = isSelected,
                             onClick = { currentScreen = screen },
                             icon = {
+                                val iconScale by animateFloatAsState(
+                                    targetValue = if (isSelected) 1.12f else 1f,
+                                    label = "navigation-icon-scale"
+                                )
                                 BadgedBox(badge = {
                                     if (screen == Screen.Settings && updateState is UpdateUiState.Available) {
                                         Badge(containerColor = MnaColors.Accent)
                                     }
-                                }) { Icon(screen.icon!!, contentDescription = label) }
+                                }) {
+                                    Icon(
+                                        screen.icon!!,
+                                        contentDescription = label,
+                                        modifier = Modifier.graphicsLayer {
+                                            scaleX = iconScale
+                                            scaleY = iconScale
+                                        }
+                                    )
+                                }
                             },
                             label = { Text(label, fontSize = 11.sp) },
                             alwaysShowLabel = true,
@@ -154,7 +175,23 @@ private fun MnaApp(
         }
     ) { padding ->
         val modifier = Modifier.padding(padding)
-        when (currentScreen) {
+        AnimatedContent(
+            targetState = currentScreen,
+            label = "screen-transition",
+            transitionSpec = {
+                (fadeIn(animationSpec = androidx.compose.animation.core.tween(220)) +
+                    slideInHorizontally(
+                        animationSpec = androidx.compose.animation.core.tween(260),
+                        initialOffsetX = { fullWidth -> fullWidth / 12 }
+                    )) togetherWith
+                    (fadeOut(animationSpec = androidx.compose.animation.core.tween(150)) +
+                        slideOutHorizontally(
+                            animationSpec = androidx.compose.animation.core.tween(180),
+                            targetOffsetX = { fullWidth -> -fullWidth / 16 }
+                        ))
+            }
+        ) { screen ->
+        when (screen) {
             Screen.Home -> HomeScreen(
                 networkState = network.state.collectAsState().value,
                 updateState = updateState,
@@ -225,6 +262,7 @@ private fun MnaApp(
                 onBack = { currentScreen = Screen.Settings },
                 modifier = modifier
             )
+        }
         }
     }
 }
