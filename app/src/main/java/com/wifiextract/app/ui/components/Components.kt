@@ -120,7 +120,6 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(18.dp, cardShape)
             .clip(cardShape)
             .background(Color.White)
             .padding(24.dp),
@@ -134,7 +133,6 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .size(88.dp)
-                    .shadow(12.dp, CircleShape, ambientColor = accent.copy(alpha = 0.35f), spotColor = accent.copy(alpha = 0.45f))
                     .border(3.dp, accent, CircleShape)
                     .clip(CircleShape)
                     .background(Color(0xFFF1F3F5)),
