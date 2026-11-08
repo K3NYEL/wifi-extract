@@ -33,6 +33,7 @@
     <string name="settings_updates_title">Updates</string>
     <string name="settings_updates_desc">Check for new versions and release notes</string>
     <string name="settings_language_title">Language</string>
+    <string name="language_changing">Changing language…</string>
     <string name="lang_system">System</string>
     <string name="lang_spanish">Español</string>
     <string name="lang_english">English</string>
