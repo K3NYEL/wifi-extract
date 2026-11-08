@@ -366,6 +366,7 @@ private fun securityLabel(capabilities: String): String = when {
     else -> "Abierta / no identificada"
 }
 
+@Composable
 private fun signalColor(level: Int) = when {
     level >= -55 -> MnaColors.Connected
     level >= -70 -> MnaColors.Warning

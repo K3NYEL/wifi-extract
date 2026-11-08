@@ -39,8 +39,8 @@ import com.wifiextract.app.ui.devices.DevicesScreen
 import com.wifiextract.app.ui.devices.DevicesViewModel
 import com.wifiextract.app.ui.diagnostics.DiagnosticsScreen
 import com.wifiextract.app.ui.diagnostics.DiagnosticsViewModel
-import com.wifiextract.app.ui.overview.OverviewScreen
 import com.wifiextract.app.ui.monitor.MonitorScreen
+import com.wifiextract.app.ui.overview.OverviewScreen
 import com.wifiextract.app.ui.settings.SettingsScreen
 import com.wifiextract.app.ui.settings.SettingsViewModel
 import com.wifiextract.app.ui.theme.MnaColors
@@ -70,7 +70,8 @@ class MainActivity : ComponentActivity() {
         val updates = provider[UpdatesViewModel::class.java]
         val settings = provider[SettingsViewModel::class.java]
         setContent {
-            MnaTheme {
+            val settingsState by settings.state.collectAsState()
+            MnaTheme(darkTheme = settingsState.theme == "dark") {
                 MnaApp(network, devices, diagnostics, updates, settings)
             }
         }
@@ -161,6 +162,7 @@ private fun MnaApp(
                 onResolveHostnames = settings::setResolveHostnames,
                 onKeepScreenOn = settings::setKeepScreenOn,
                 onTimeout = settings::setTimeout,
+                onTheme = settings::setTheme,
                 onOpenUpdates = { currentScreen = Screen.Updates },
                 modifier = modifier
             )
@@ -174,7 +176,6 @@ private fun MnaApp(
                 },
                 modifier = modifier
             )
-            Screen.Monitor -> MonitorScreen(modifier = modifier)
             Screen.Updates -> UpdatesScreen(
                 state = updateState,
                 installed = installed,
@@ -182,6 +183,9 @@ private fun MnaApp(
                 onDownload = updates::download,
                 onCancel = updates::cancelDownload,
                 onInstall = { updates.install(context) },
+                modifier = modifier
+            )
+            Screen.Monitor -> MonitorScreen(
                 modifier = modifier
             )
         }

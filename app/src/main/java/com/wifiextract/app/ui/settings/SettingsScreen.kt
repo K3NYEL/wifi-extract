@@ -44,10 +44,11 @@ fun SettingsScreen(
     onResolveHostnames: (Boolean) -> Unit,
     onKeepScreenOn: (Boolean) -> Unit,
     onTimeout: (Int) -> Unit,
+    onTheme: (String) -> Unit,
     onOpenUpdates: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         ScreenHeader("Application Settings")
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 4.dp),
@@ -57,6 +58,18 @@ fun SettingsScreen(
                 Eyebrow(stringResource(R.string.settings_updates_title))
                 Note(stringResource(R.string.settings_updates_desc))
                 PrimaryButton(stringResource(R.string.nav_updates), onOpenUpdates, Modifier.fillMaxWidth())
+            }
+            MnaCard {
+                Eyebrow("TEMA DE LA APLICACIÓN")
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (state.theme == "dark") {
+                        PrimaryButton("Oscuro", { onTheme("dark") }, Modifier.weight(1f))
+                        SecondaryButton("Claro", { onTheme("light") }, Modifier.weight(1f))
+                    } else {
+                        SecondaryButton("Oscuro", { onTheme("dark") }, Modifier.weight(1f))
+                        PrimaryButton("Claro", { onTheme("light") }, Modifier.weight(1f))
+                    }
+                }
             }
             ToggleRow("Comprobar actualizaciones al iniciar", state.checkUpdatesOnStart, onCheckUpdates)
             ToggleRow("Resolver nombres de host", state.resolveHostnames, onResolveHostnames)

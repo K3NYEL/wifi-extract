@@ -22,11 +22,16 @@ class SettingsRepository(context: Context) {
         get() = prefs.getInt(KEY_TIMEOUT, 1000).takeIf { it in TIMEOUT_OPTIONS } ?: 1000
         set(value) = prefs.edit().putInt(KEY_TIMEOUT, value).apply()
 
+    var theme: String
+        get() = prefs.getString(KEY_THEME, "dark") ?: "dark"
+        set(value) = prefs.edit().putString(KEY_THEME, value).apply()
+
     companion object {
         val TIMEOUT_OPTIONS = listOf(500, 1000, 2000)
         private const val KEY_UPDATES = "check_updates_on_start"
         private const val KEY_HOSTNAMES = "resolve_hostnames"
         private const val KEY_SCREEN = "keep_screen_on"
         private const val KEY_TIMEOUT = "timeout_ms"
+        private const val KEY_THEME = "app_theme"
     }
 }
