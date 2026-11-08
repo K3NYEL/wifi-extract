@@ -1,10 +1,13 @@
 package com.wifiextract.app
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -35,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import com.wifiextract.app.data.SettingsRepository
 import com.wifiextract.app.ui.home.HomeScreen
 import com.wifiextract.app.ui.network.NetworkScreen
 import com.wifiextract.app.ui.devices.DevicesScreen
@@ -58,10 +62,21 @@ enum class Screen(val label: Int? = null, val icon: ImageVector? = null, val isT
     Updates(isTab = false)
 }
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        val settingsRepo = SettingsRepository(application)
+        val lang = settingsRepo.language
+        val tag = if (lang == "system") "" else lang
+        val currentLocales = AppCompatDelegate.getApplicationLocales()
+        if (tag.isEmpty() && !currentLocales.isEmpty) {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+        } else if (tag.isNotEmpty() && currentLocales.toLanguageTags() != tag) {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+        }
+
         val provider = ViewModelProvider(this)
         val network = provider[NetworkOverviewViewModel::class.java]
         val devices = provider[DevicesViewModel::class.java]
@@ -70,7 +85,13 @@ class MainActivity : ComponentActivity() {
         val settings = provider[SettingsViewModel::class.java]
         setContent {
             val settingsState by settings.state.collectAsState()
-            MnaTheme(darkTheme = settingsState.theme == "dark") {
+            val systemDark = isSystemInDarkTheme()
+            val darkTheme = when (settingsState.theme) {
+                "dark" -> true
+                "light" -> false
+                else -> systemDark
+            }
+            MnaTheme(darkTheme = darkTheme) {
                 MnaApp(network, devices, diagnostics, updates, settings)
             }
         }
@@ -172,11 +193,13 @@ private fun MnaApp(
             )
             Screen.Tools -> DiagnosticsScreen(
                 state = diagnostics.state.collectAsState().value,
+                logs = diagnostics.logs.collectAsState().value,
                 onTool = diagnostics::selectTool,
                 onHost = diagnostics::setHost,
                 onPort = diagnostics::setPort,
                 onRun = diagnostics::run,
                 onCancel = diagnostics::cancel,
+                onClearLogs = diagnostics::clearLogs,
                 modifier = modifier
             )
             Screen.Settings -> SettingsScreen(
@@ -187,6 +210,7 @@ private fun MnaApp(
                 onKeepScreenOn = settings::setKeepScreenOn,
                 onTimeout = settings::setTimeout,
                 onTheme = settings::setTheme,
+                onLanguage = settings::setLanguage,
                 onOpenUpdates = { currentScreen = Screen.Updates },
                 modifier = modifier,
                 updateAvailable = updateState is UpdateUiState.Available

@@ -17,8 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wifiextract.app.R
+import com.wifiextract.app.core.Formatters
 import com.wifiextract.app.data.InstalledVersion
 import com.wifiextract.app.data.ReleaseInfo
 import com.wifiextract.app.ui.components.Eyebrow
@@ -45,49 +48,49 @@ fun UpdatesScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    Column(modifier.fillMaxSize()) {
-        ScreenHeader("Actualizaciones", onBack = onBack)
+    Column(modifier = modifier.fillMaxSize()) {
+        ScreenHeader(stringResource(R.string.nav_updates), onBack = onBack)
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             MnaCard {
-                InfoRow("Versión instalada", "${installed.name} (${installed.code})")
+                InfoRow(stringResource(R.string.lbl_installed_version), "${installed.name} (${installed.code})")
                 when (state) {
-                    UpdateUiState.Idle -> InfoRow("Última versión", "—")
+                    UpdateUiState.Idle -> InfoRow(stringResource(R.string.lbl_latest_version), "—")
                     UpdateUiState.Checking -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Última versión", color = MnaColors.TextSecondary, fontSize = 13.sp)
+                        Text(stringResource(R.string.lbl_latest_version), color = MnaColors.TextSecondary, fontSize = 13.sp)
                         SkeletonBox(Modifier.padding(top = 2.dp).fillMaxWidth(0.3f))
                     }
-                    is UpdateUiState.UpToDate -> InfoRow("Última versión", state.latest?.tag ?: "—")
-                    is UpdateUiState.Available -> InfoRow("Última versión", state.info.tag)
-                    is UpdateUiState.Downloading -> InfoRow("Última versión", state.info.tag)
-                    is UpdateUiState.Ready -> InfoRow("Última versión", state.info.tag)
-                    is UpdateUiState.Failed -> InfoRow("Última versión", "—")
+                    is UpdateUiState.UpToDate -> InfoRow(stringResource(R.string.lbl_latest_version), state.latest?.tag ?: "—")
+                    is UpdateUiState.Available -> InfoRow(stringResource(R.string.lbl_latest_version), state.info.tag)
+                    is UpdateUiState.Downloading -> InfoRow(stringResource(R.string.lbl_latest_version), state.info.tag)
+                    is UpdateUiState.Ready -> InfoRow(stringResource(R.string.lbl_latest_version), state.info.tag)
+                    is UpdateUiState.Failed -> InfoRow(stringResource(R.string.lbl_latest_version), "—")
                 }
-                Note("Fuente: GitHub Releases oficiales del proyecto.")
+                Note(stringResource(R.string.source_github_releases))
             }
 
             when (state) {
                 UpdateUiState.Idle -> {
-                    Note("Pulsa «Comprobar» para consultar si hay una versión nueva.")
-                    SecondaryButton("Comprobar", onCheck, Modifier.fillMaxWidth())
+                    Note(stringResource(R.string.updates_idle_prompt))
+                    SecondaryButton(stringResource(R.string.btn_check), onCheck, Modifier.fillMaxWidth())
                 }
                 UpdateUiState.Checking -> {
                     MnaCard {
-                        Eyebrow("NOVEDADES")
+                        Eyebrow(stringResource(R.string.eyebrow_release_notes))
                         SkeletonLines(lines = 4)
                     }
-                    SecondaryButton("Comprobando…", {}, Modifier.fillMaxWidth(), enabled = false)
+                    SecondaryButton(stringResource(R.string.btn_checking), {}, Modifier.fillMaxWidth(), enabled = false)
                 }
                 is UpdateUiState.UpToDate -> {
                     MnaCard {
-                        StatusChip("ACTUALIZADA", MnaColors.Success)
-                        Note("Ya tienes la versión más reciente publicada.")
+                        StatusChip(stringResource(R.string.chip_up_to_date), MnaColors.Success)
+                        Note(stringResource(R.string.msg_up_to_date))
                     }
-                    SecondaryButton("Comprobar de nuevo", onCheck, Modifier.fillMaxWidth())
+                    SecondaryButton(stringResource(R.string.btn_check_again), onCheck, Modifier.fillMaxWidth())
                     state.latest?.pageUrl?.let { url ->
-                        SecondaryButton("Ver en GitHub", {
+                        SecondaryButton(stringResource(R.string.btn_view_github), {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                         }, Modifier.fillMaxWidth())
                     }
@@ -95,17 +98,17 @@ fun UpdatesScreen(
                 is UpdateUiState.Available -> {
                     ReleaseNotes(state.info)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        PrimaryButton("Descargar", { onDownload(state.info) }, Modifier.weight(1f))
-                        SecondaryButton("Comprobar", onCheck, Modifier.weight(1f))
+                        PrimaryButton(stringResource(R.string.btn_download), { onDownload(state.info) }, Modifier.weight(1f))
+                        SecondaryButton(stringResource(R.string.btn_check), onCheck, Modifier.weight(1f))
                     }
-                    SecondaryButton("Ver en GitHub", {
+                    SecondaryButton(stringResource(R.string.btn_view_github), {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(state.info.pageUrl)))
                     }, Modifier.fillMaxWidth())
-                    Note("Se verificarán el SHA-256 y la firma del APK antes de ofrecer la instalación.")
+                    Note(stringResource(R.string.msg_verification_notice))
                 }
                 is UpdateUiState.Downloading -> {
                     MnaCard {
-                        Eyebrow(if (state.percent == 100) "VERIFICANDO INTEGRIDAD" else "DESCARGANDO ${state.info.tag}")
+                        Eyebrow(if (state.percent == 100) stringResource(R.string.eyebrow_verifying_integrity) else stringResource(R.string.eyebrow_downloading_tag, state.info.tag))
                         if (state.percent != null) {
                             LinearProgressIndicator(
                                 progress = { state.percent / 100f },
@@ -122,28 +125,28 @@ fun UpdatesScreen(
                             )
                         }
                     }
-                    SecondaryButton("Cancelar", onCancel, Modifier.fillMaxWidth())
+                    SecondaryButton(stringResource(R.string.btn_cancel), onCancel, Modifier.fillMaxWidth())
                 }
                 is UpdateUiState.Ready -> {
                     MnaCard {
-                        StatusChip("VERIFICADA", MnaColors.Success)
-                        Note("SHA-256 y firma del APK coinciden con la app instalada. Android te pedirá confirmar la instalación.")
+                        StatusChip(stringResource(R.string.chip_verified), MnaColors.Success)
+                        Note(stringResource(R.string.msg_verified))
                     }
-                    PrimaryButton("Instalar ${state.info.tag}", onInstall, Modifier.fillMaxWidth())
+                    PrimaryButton(stringResource(R.string.btn_install_tag, state.info.tag), onInstall, Modifier.fillMaxWidth())
                 }
                 is UpdateUiState.Failed -> {
                     MnaCard {
-                        Eyebrow("ERROR")
+                        Eyebrow(stringResource(R.string.eyebrow_error))
                         Text(state.message, color = MnaColors.AccentText, fontSize = 14.sp, lineHeight = 20.sp)
                     }
                     SecondaryButton(
-                        "Reintentar",
+                        stringResource(R.string.btn_retry),
                         { if (state.retry != null) onDownload(state.retry) else onCheck() },
                         Modifier.fillMaxWidth()
                     )
                 }
             }
-            Note("La instalación requiere permitir «instalar apps desconocidas» para MNA y confirmar en el sistema. Nada se instala en silencio.")
+            Note(stringResource(R.string.updates_install_notice))
             Spacer(Modifier.height(28.dp))
         }
     }
@@ -152,13 +155,13 @@ fun UpdatesScreen(
 @Composable
 private fun ReleaseNotes(info: ReleaseInfo) {
     MnaCard {
-        Eyebrow("NOVEDADES · ${info.title.uppercase()}")
+        Eyebrow(stringResource(R.string.eyebrow_notes_title, info.title.uppercase()))
         val notes = info.notes.lines()
             .map { it.trim().trimStart('#', '*', '-', ' ') }
             .filter { it.isNotBlank() }
             .take(8)
-        if (notes.isEmpty()) Note("Esta versión no incluye notas.")
+        if (notes.isEmpty()) Note(stringResource(R.string.notes_empty))
         else notes.forEach { Text("· $it", color = MnaColors.TextPrimary, fontSize = 13.sp, lineHeight = 19.sp) }
-        if (info.apkSize > 0) Note("Tamaño: ${"%.1f".format(info.apkSize / 1_048_576.0)} MB")
+        if (info.apkSize > 0) Note(stringResource(R.string.label_size, Formatters.formatBytes(info.apkSize)))
     }
 }

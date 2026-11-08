@@ -1,11 +1,15 @@
 package com.wifiextract.app.ui.components
 
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.selectable
@@ -28,10 +32,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -39,7 +45,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -47,12 +56,18 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import com.wifiextract.app.R
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wifiextract.app.ui.theme.MnaColors
 import com.wifiextract.app.ui.theme.MnaShapes
+import androidx.compose.runtime.produceState
+import coil.compose.rememberAsyncImagePainter
+import com.wifiextract.app.data.GithubUser
+import com.wifiextract.app.data.fetchGithubUser
 
 private val SkeletonColor = Color(0xFF2A2A30)
 
@@ -65,7 +80,7 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier, onBack: (() -> Un
     ) {
         if (onBack != null) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MnaColors.TextPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = MnaColors.TextPrimary)
             }
         }
         Text(title, modifier = Modifier.weight(1f), color = MnaColors.TextPrimary, fontSize = 26.sp, fontWeight = FontWeight.Bold)
@@ -73,6 +88,115 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier, onBack: (() -> Un
     }
 }
 
+@Composable
+fun DeveloperImage(modifier: Modifier = Modifier, painter: Painter? = null, initials: String = "", content: @Composable () -> Unit = {},) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        DeveloperAvatar(painter = painter, initials = initials)
+        content()
+    }
+}
+
+@Composable
+fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
+    val uriHandler = LocalUriHandler.current
+
+    // null = cargando
+    val result by produceState<Result<GithubUser>?>(initialValue = null, key1 = username) {
+        value = fetchGithubUser(username)
+    }
+    val current = result
+
+    if (current == null) {
+        SkeletonCard(rows = 4, modifier = modifier)
+        return
+    }
+
+    val user = current.getOrNull()
+
+    MnaCard(modifier) {
+        if (user != null) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = user.avatarUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(64.dp).clip(CircleShape)
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(user.name, color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("@${user.login}", color = MnaColors.TextSecondary, fontSize = 13.sp)
+                }
+            }
+
+            user.bio?.let { Note(it) }
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                MetricTile(stringResource(R.string.github_repos), user.publicRepos.toString(), Modifier.weight(1f))
+                MetricTile(stringResource(R.string.github_followers), user.followers.toString(), Modifier.weight(1f))
+                MetricTile(stringResource(R.string.github_following), user.following.toString(), Modifier.weight(1f))
+            }
+
+            user.location?.let { InfoRow(stringResource(R.string.github_location), it, mono = false) }
+            user.company?.let { InfoRow(stringResource(R.string.github_company), it, mono = false) }
+
+            PrimaryButton(
+                text = stringResource(R.string.view_on_github),
+                onClick = { uriHandler.openUri(user.htmlUrl) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            // Fallback si falla la red, el usuario no existe o se agotó el límite
+            Text(username, color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Note(stringResource(R.string.github_offline))
+            PrimaryButton(
+                text = stringResource(R.string.view_on_github),
+                onClick = { uriHandler.openUri("https://github.com/$username") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun AsyncImage(
+    model: String,
+    contentDescription: Nothing?,
+    contentScale: ContentScale,
+    modifier: Modifier
+) {
+    TODO("Not yet implemented")
+}
+
+@Composable
+private fun DeveloperAvatar(painter: Painter?, initials: String) {
+    val shape = CircleShape
+    if (painter != null ) {
+        Image(
+            painter = painter,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(44.dp).clip(shape),
+        )
+    } else {
+        Box(
+            modifier = Modifier.size(44.dp).clip(shape).background(MaterialTheme.colorScheme.primary),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = initials,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+    }
+}
 @Composable
 fun MnaCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Column(
@@ -107,7 +231,7 @@ fun StatusChip(text: String, color: Color, modifier: Modifier = Modifier) {
 @Composable
 fun ComingSoonTag(modifier: Modifier = Modifier) {
     Text(
-        "PRÓXIMAMENTE",
+        stringResource(R.string.coming_soon).uppercase(),
         modifier = modifier.background(Color(0xFF3B1210), MnaShapes.Chip).padding(horizontal = 6.dp, vertical = 2.dp),
         color = Color(0xFFFF8A85),
         fontSize = 10.sp,
@@ -213,7 +337,8 @@ fun SkeletonBox(modifier: Modifier = Modifier, height: Dp = 14.dp) {
 /** A card of skeleton rows (label on the left, value on the right). */
 @Composable
 fun SkeletonCard(rows: Int, modifier: Modifier = Modifier) {
-    MnaCard(modifier.semantics { contentDescription = "Cargando" }) {
+    val loadingText = stringResource(R.string.loading)
+    MnaCard(modifier.semantics { contentDescription = loadingText }) {
         repeat(rows) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 SkeletonBox(Modifier.width(96.dp))
@@ -226,7 +351,8 @@ fun SkeletonCard(rows: Int, modifier: Modifier = Modifier) {
 /** Skeleton shaped like a device row: two text lines and a button. */
 @Composable
 fun SkeletonListRow(modifier: Modifier = Modifier) {
-    MnaCard(modifier.semantics { contentDescription = "Cargando" }) {
+    val loadingText = stringResource(R.string.loading)
+    MnaCard(modifier.semantics { contentDescription = loadingText }) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SkeletonBox(Modifier.width(120.dp))
@@ -240,7 +366,8 @@ fun SkeletonListRow(modifier: Modifier = Modifier) {
 /** Skeleton for free text (release notes, results). */
 @Composable
 fun SkeletonLines(lines: Int, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth().semantics { contentDescription = "Cargando" }, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val loadingText = stringResource(R.string.loading)
+    Column(modifier.fillMaxWidth().semantics { contentDescription = loadingText }, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         repeat(lines) { index ->
             SkeletonBox(Modifier.fillMaxWidth(if (index == lines - 1) 0.6f else 1f), height = 12.dp)
         }

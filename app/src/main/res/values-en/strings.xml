@@ -24,4 +24,8 @@
     <string name="error_generic">The operation could not be completed. Try again.</string>
     <string name="settings_updates_title">Updates</string>
     <string name="settings_updates_desc">Check for new versions and release notes</string>
+    <string name="settings_language_title">Language</string>
+    <string name="lang_system">System</string>
+    <string name="lang_spanish">Español</string>
+    <string name="lang_english">English</string>
 </resources>
