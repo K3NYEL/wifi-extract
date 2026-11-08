@@ -8,6 +8,7 @@
          Do not use neverForLocation: the app also displays scan data that can reveal location. -->
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
     <uses-feature android:name="android.hardware.wifi.rtt" android:required="false" />
     <uses-permission android:name="android.permission.INTERNET" />
