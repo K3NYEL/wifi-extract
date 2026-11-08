@@ -83,9 +83,10 @@ object MnaColors {
 }
 
 object MnaShapes {
-    val Card = RoundedCornerShape(4.dp)
+    val Card = RoundedCornerShape(16.dp)
     val Button = RoundedCornerShape(12.dp)
-    val Chip = RoundedCornerShape(4.dp)
+    val Chip = RoundedCornerShape(50)
+    val Pill = RoundedCornerShape(50)
 }
 
 @Composable

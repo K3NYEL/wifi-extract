@@ -9,9 +9,17 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.Network
+import android.net.MacAddress
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
+import android.net.wifi.WifiNetworkSpecifier
+import android.net.wifi.rtt.RangingRequest
+import android.net.wifi.rtt.RangingResult
+import android.net.wifi.rtt.RangingResultCallback
+import android.net.wifi.rtt.WifiRttManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,6 +38,8 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -73,6 +84,20 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
     var connection by remember { mutableStateOf(readWifiConnection(context)) }
     var status by remember { mutableStateOf("Pulsa «Escanear redes» para iniciar una búsqueda.") }
     var scanning by remember { mutableStateOf(false) }
+    var rangingResults by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var pendingRanging by remember { mutableStateOf<ScanResult?>(null) }
+    var networkSsid by remember { mutableStateOf("") }
+    var networkBssid by remember { mutableStateOf("") }
+    var networkPassword by remember { mutableStateOf("") }
+    var networkStatus by remember { mutableStateOf("Solicita una conexión a una red cercana mediante el diálogo del sistema.") }
+    var networkRequestPending by remember { mutableStateOf(false) }
+    var activeNetworkCallback by remember { mutableStateOf<ConnectivityManager.NetworkCallback?>(null) }
+    val connectivityManager = remember {
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
+    val rttManager = remember {
+        context.getSystemService(Context.WIFI_RTT_RANGING_SERVICE) as? WifiRttManager
+    }
 
     fun hasScanPermissions(): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -125,6 +150,146 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         }
     }
 
+
+    fun performRanging(result: ScanResult) {
+        if (Build.VERSION.SDK_INT < 28 ||
+            !context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_RTT) ||
+            rttManager == null
+        ) {
+            rangingResults = rangingResults + (result.BSSID to "Este dispositivo no admite Wi-Fi RTT.")
+            return
+        }
+        if (!isLocationEnabled(context)) {
+            rangingResults = rangingResults + (result.BSSID to "Activa los servicios de ubicación para medir distancia.")
+            return
+        }
+        if (!rttManager.isAvailable) {
+            rangingResults = rangingResults + (result.BSSID to "Wi-Fi RTT no está disponible en este momento.")
+            return
+        }
+        rangingResults = rangingResults + (result.BSSID to "Midiendo…")
+        runCatching {
+            val request = RangingRequest.Builder()
+                .addAccessPoint(result)
+                .build()
+            val callback = object : RangingResultCallback() {
+                override fun onRangingFailure(code: Int) {
+                    rangingResults = rangingResults + (result.BSSID to "La medición falló (código $code).")
+                }
+
+                override fun onRangingResults(results: List<RangingResult>) {
+                    val measurement = results.firstOrNull {
+                        it.status == RangingResult.STATUS_SUCCESS
+                    }
+                    val label = if (measurement != null) {
+                        String.format(java.util.Locale.getDefault(), "%.2f m", measurement.distanceMm / 1000.0)
+                    } else {
+                        "El punto de acceso no respondió a RTT."
+                    }
+                    rangingResults = rangingResults + (result.BSSID to label)
+                }
+            }
+            rttManager.startRanging(request, ContextCompat.getMainExecutor(context), callback)
+        }.onFailure {
+            rangingResults = rangingResults + (result.BSSID to "No se pudo iniciar RTT: ${it.message ?: "error del sistema"}.")
+        }
+    }
+
+    val rttPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        val allowed = if (Build.VERSION.SDK_INT >= 33) {
+            grants[Manifest.permission.NEARBY_WIFI_DEVICES] == true &&
+                grants[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        } else {
+            grants[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        }
+        val target = pendingRanging
+        pendingRanging = null
+        if (allowed && target != null) performRanging(target)
+        else if (target != null) {
+            rangingResults = rangingResults + (target.BSSID to "Permiso cercano denegado; no se inició RTT.")
+        }
+    }
+
+    val networkPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) networkRequestPending = true
+        else networkStatus = "Permiso de dispositivos Wi-Fi cercanos denegado."
+    }
+
+    fun requestSpecificNetwork() {
+        if (Build.VERSION.SDK_INT < 29) {
+            networkStatus = "WifiNetworkSpecifier requiere Android 10 (API 29) o superior."
+            return
+        }
+        val ssid = networkSsid.trim()
+        if (ssid.isEmpty()) {
+            networkStatus = "Escribe el SSID de la red."
+            return
+        }
+        if (activeNetworkCallback != null) {
+            networkStatus = "Ya existe una solicitud de conexión activa. Cancélala antes de iniciar otra."
+            return
+        }
+        runCatching {
+            val specifierBuilder = WifiNetworkSpecifier.Builder().setSsid(ssid)
+            if (networkBssid.isNotBlank()) {
+                specifierBuilder.setBssid(MacAddress.fromString(networkBssid.trim()))
+            }
+            if (networkPassword.isNotBlank()) {
+                specifierBuilder.setWpa2Passphrase(networkPassword)
+            }
+            val request = NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .setNetworkSpecifier(specifierBuilder.build())
+                .build()
+            val callback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    networkStatus = "Conexión local disponible para WiFi Extract. Android mantiene el control de la conexión."
+                }
+                override fun onUnavailable() {
+                    networkStatus = "La solicitud no se completó o fue cancelada."
+                    activeNetworkCallback = null
+                }
+                override fun onLost(network: Network) {
+                    networkStatus = "La conexión solicitada se perdió."
+                    activeNetworkCallback = null
+                }
+            }
+            connectivityManager.requestNetwork(request, callback)
+            activeNetworkCallback = callback
+            networkStatus = "Solicitud enviada. Confirma la conexión en el diálogo de Android."
+        }.onFailure {
+            networkStatus = "No se pudo solicitar la conexión: ${it.message ?: "error del sistema"}"
+        }
+    }
+
+    fun requestRanging(result: ScanResult) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            val nearbyGranted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.NEARBY_WIFI_DEVICES
+            ) == PackageManager.PERMISSION_GRANTED
+            val locationGranted = hasScanPermissions()
+            if (!nearbyGranted || !locationGranted) {
+                pendingRanging = result
+                rttPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.NEARBY_WIFI_DEVICES,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    )
+                )
+                return
+            }
+        } else if (!hasScanPermissions()) {
+            pendingRanging = result
+            rttPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
+            return
+        }
+        performRanging(result)
+    }
+
     fun requestOrScan() {
         connection = readWifiConnection(context)
         if (!hasScanPermissions()) {
@@ -164,6 +329,21 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
         }
         onDispose {
             runCatching { context.unregisterReceiver(receiver) }
+        }
+    }
+
+    LaunchedEffect(networkRequestPending) {
+        if (networkRequestPending) {
+            networkRequestPending = false
+            requestSpecificNetwork()
+        }
+    }
+
+    DisposableEffect(connectivityManager) {
+        onDispose {
+            activeNetworkCallback?.let { callback ->
+                runCatching { connectivityManager.unregisterNetworkCallback(callback) }
+            }
         }
     }
 
@@ -250,6 +430,66 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                 }
             }
 
+            item {
+                MnaCard {
+                    Eyebrow("CONEXIÓN A RED ESPECÍFICA")
+                    Note("Solicita conexión mediante la API oficial de Android. El sistema mostrará su propio diálogo de confirmación.")
+                    OutlinedTextField(
+                        value = networkSsid,
+                        onValueChange = { networkSsid = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("SSID") },
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = networkBssid,
+                        onValueChange = { networkBssid = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("BSSID (opcional)") },
+                        singleLine = true,
+                        placeholder = { Text("AA:BB:CC:DD:EE:FF") }
+                    )
+                    OutlinedTextField(
+                        value = networkPassword,
+                        onValueChange = { networkPassword = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Contraseña WPA2 (opcional)") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation()
+                    )
+                    Button(
+                        onClick = {
+                            when {
+                                Build.VERSION.SDK_INT >= 33 &&
+                                    ContextCompat.checkSelfPermission(context, Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED ->
+                                    networkPermissionLauncher.launch(Manifest.permission.NEARBY_WIFI_DEVICES)
+                                Build.VERSION.SDK_INT in 29..32 &&
+                                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ->
+                                    networkPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                else -> networkRequestPending = true
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MnaColors.AccentButton, contentColor = Color.White)
+                    ) {
+                        Text("Solicitar conexión")
+                    }
+                    if (activeNetworkCallback != null) {
+                        OutlinedButton(
+                            onClick = {
+                                activeNetworkCallback?.let { callback ->
+                                    runCatching { connectivityManager.unregisterNetworkCallback(callback) }
+                                }
+                                activeNetworkCallback = null
+                                networkStatus = "Solicitud de conexión cancelada."
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Cancelar solicitud") }
+                    }
+                    Text(networkStatus, color = MnaColors.TextSecondary, fontSize = 12.sp)
+                }
+            }
+
             if (scanResults.isEmpty()) {
                 item {
                     MnaCard {
@@ -286,6 +526,28 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                         InfoRow("Frecuencia", "${result.frequency} MHz")
                         InfoRow("Seguridad", securityLabel(result.capabilities))
                         InfoRow("BSSID", result.BSSID)
+                        val supportsAzResponder = Build.VERSION.SDK_INT >= 35 &&
+                            result.is80211azNtbResponder &&
+                            rttManager?.getRttCharacteristics()?.getBoolean(
+                                WifiRttManager.CHARACTERISTICS_KEY_BOOLEAN_NTB_INITIATOR, false
+                            ) == true
+                        val supportsRttResponder = Build.VERSION.SDK_INT >= 28 &&
+                            (result.is80211mcResponder || supportsAzResponder)
+                        if (supportsRttResponder &&
+                            context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_RTT)
+                        ) {
+                            OutlinedButton(
+                                onClick = { requestRanging(result) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Medir distancia (Wi-Fi RTT)")
+                            }
+                            rangingResults[result.BSSID]?.let { measurement ->
+                                InfoRow("Distancia RTT", measurement)
+                            }
+                        } else if (Build.VERSION.SDK_INT >= 28) {
+                            InfoRow("Wi-Fi RTT", "Punto de acceso sin soporte FTM o dispositivo no compatible")
+                        }
                     }
                 }
             }
