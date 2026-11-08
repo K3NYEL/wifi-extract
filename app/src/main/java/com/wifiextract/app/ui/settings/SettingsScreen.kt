@@ -1,7 +1,5 @@
 package com.wifiextract.app.ui.settings
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,8 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -38,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.wifiextract.app.R
 import com.wifiextract.app.data.SettingsRepository
 import com.wifiextract.app.ui.components.Eyebrow
-import com.wifiextract.app.ui.components.PrimaryButton
+import com.wifiextract.app.ui.components.GithubProfileCard
 import com.wifiextract.app.ui.components.InfoRow
 import com.wifiextract.app.ui.components.MnaCard
 import com.wifiextract.app.ui.components.Note
@@ -65,7 +61,6 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     updateAvailable: Boolean = false
 ) {
-    val context = LocalContext.current
     Column(modifier = modifier.fillMaxSize()) {
         ScreenHeader(stringResource(R.string.nav_settings))
         Column(
@@ -76,16 +71,8 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             MnaCard {
-                Text("Kenyel", color = MnaColors.TextPrimary, fontSize = 18.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                Text("@K3NYEL", color = MnaColors.TextSecondary, fontSize = 13.sp)
-                Note("Desarrollador de Mobile Network Analyzer")
-                PrimaryButton(
-                    text = stringResource(R.string.view_on_github),
-                    onClick = {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/K3NYEL"))
-                        )
-                    },
+                GithubProfileCard(
+                    username = "K3NYEL",
                     modifier = Modifier.fillMaxWidth()
                 )
             }
