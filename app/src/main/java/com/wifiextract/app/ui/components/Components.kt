@@ -122,7 +122,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .shadow(18.dp, cardShape)
             .clip(cardShape)
-            .background(Color(0xFF161B22))
+            .background(Color.White)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -137,12 +137,12 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     .shadow(12.dp, CircleShape, ambientColor = accent.copy(alpha = 0.35f), spotColor = accent.copy(alpha = 0.45f))
                     .border(3.dp, accent, CircleShape)
                     .clip(CircleShape)
-                    .background(Color(0xFF262D38)),
+                    .background(Color(0xFFF1F3F5)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     username.take(1).uppercase(),
-                    color = Color(0xFFF0F6FC),
+                    color = Color(0xFF161B22),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -173,7 +173,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                     Text(
                         "GITHUB",
                         modifier = Modifier
-                            .background(Color(0xFF262D38), CircleShape)
+                            .background(Color(0xFFE9EDF1), CircleShape)
                             .padding(horizontal = 10.dp, vertical = 5.dp),
                         color = Color(0xFFF0F6FC),
                         fontSize = 10.sp,
@@ -183,7 +183,7 @@ fun GithubProfileCard(username: String, modifier: Modifier = Modifier) {
                 }
                 Text(
                     "@${user?.login ?: username}",
-                    color = Color(0xFFA9B4C2),
+                    color = Color(0xFF626B75),
                     fontSize = 14.sp
                 )
             }
