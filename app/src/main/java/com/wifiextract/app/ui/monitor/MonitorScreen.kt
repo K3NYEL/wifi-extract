@@ -452,10 +452,15 @@ fun MonitorScreen(modifier: Modifier = Modifier) {
                     )
                     Button(
                         onClick = {
-                            if (Build.VERSION.SDK_INT >= 33 &&
-                                ContextCompat.checkSelfPermission(context, Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED
-                            ) networkPermissionLauncher.launch(Manifest.permission.NEARBY_WIFI_DEVICES)
-                            else networkRequestPending = true
+                            when {
+                                Build.VERSION.SDK_INT >= 33 &&
+                                    ContextCompat.checkSelfPermission(context, Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED ->
+                                    networkPermissionLauncher.launch(Manifest.permission.NEARBY_WIFI_DEVICES)
+                                Build.VERSION.SDK_INT in 29..32 &&
+                                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ->
+                                    networkPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                else -> networkRequestPending = true
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = MnaColors.AccentButton, contentColor = Color.White)
